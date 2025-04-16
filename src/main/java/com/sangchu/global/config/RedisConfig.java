@@ -1,4 +1,4 @@
-package com.sangchu.config;
+package com.sangchu.global.config;
 
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
