@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: sangchu
+  elk:
+    index-name: ${INDEX_NAME}
 
   profiles:
     active: ${PROFILE}
@@ -46,7 +48,6 @@ spring.config.activate.on-profile: local
 
 spring:
   # 데이터 소스 설정
-
   datasource:
     url: ${MySQL_URL}
     username: ${MySQL_USER}

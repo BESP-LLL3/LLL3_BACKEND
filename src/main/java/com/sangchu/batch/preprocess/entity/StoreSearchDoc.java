@@ -1,7 +1,7 @@
 package com.sangchu.batch.preprocess.entity;
 
-import java.util.List;
-
+import com.sangchu.batch.patch.entity.Store;
+import org.springframework.ai.embedding.Embedding;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -45,6 +45,15 @@ public class StoreSearchDoc {
 	public void setVectorFromAi(float[] vector) {
 		this.vector = vector;
 	}
+
+    public StoreSearchDoc(Store store, Embedding embedding) {
+        this.storeId = store.getStoreId();
+		this.storeNm = store.getStoreNm();
+        this.midCatNm = store.getMidCatNm();
+        this.smallCatNm = store.getSmallCatNm();
+        this.setVectorFromAi(embedding.getOutput());
+
+    }
 
 }
 

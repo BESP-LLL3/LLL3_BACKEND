@@ -2,6 +2,7 @@ package com.sangchu.batch.patch.entity;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
@@ -12,6 +13,7 @@ import jakarta.persistence.Id;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @Entity
 public class Store {
 
