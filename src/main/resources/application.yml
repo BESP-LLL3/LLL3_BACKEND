@@ -54,7 +54,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   elasticsearch:
-    uris: http://localhost:9200
+    uris: ${ES_URI}
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
