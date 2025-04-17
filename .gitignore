@@ -28,6 +28,7 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 db/
+elasticsearch/data/
 
 ### NetBeans ###
 /nbproject/private/
