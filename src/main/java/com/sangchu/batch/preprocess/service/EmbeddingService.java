@@ -1,6 +1,7 @@
 package com.sangchu.batch.preprocess.service;
 
 import com.sangchu.batch.preprocess.entity.EmbeddingResponseDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,12 +15,14 @@ public class EmbeddingService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public Embedding getEmbedding(String fullText) {
+    @Value("${HUGGINGFACE_URI}")
+    private String huggingfaceUri;
 
-        // TODO: Python 서버 URI 추가
-        String url = "";
+    public Embedding getEmbedding(String keyword) {
+        
+        String url = huggingfaceUri;
 
-        Map<String, String> requestBody = Map.of("keyword", fullText);
+        Map<String, String> requestBody = Map.of("keyword", keyword);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

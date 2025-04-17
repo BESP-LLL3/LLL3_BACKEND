@@ -1,5 +1,6 @@
 package com.sangchu.batch.patch.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import lombok.Getter;
@@ -10,8 +11,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 @Entity
@@ -131,13 +130,14 @@ public class Store {
 	@Column(length = 5)
 	private String room;
 
-	@Column(length = 15, nullable = false)
-	private String coordX;
+	@Column(precision = 15, scale = 12, nullable = false, name = "coord_x")
+	private BigDecimal coordX;
 
-	@Column(length = 15, nullable = false)
-	private String coordY;
+	@Column(precision = 15, scale = 12, nullable = false, name = "coord_y")
+	private BigDecimal coordY;
 
 	@CreatedDate
-	@Column(updatable = false, nullable = false)
+	@Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	private LocalDateTime createdAt;
+
 }

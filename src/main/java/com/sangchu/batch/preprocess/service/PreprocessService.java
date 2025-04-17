@@ -12,8 +12,6 @@ import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @RequiredArgsConstructor
@@ -23,6 +21,7 @@ public class PreprocessService {
     private final ElasticsearchOperations elasticsearchOperations;
     private final StoreHelperService storeHelperService;
     private final EmbeddingService embeddingService;
+    
     @Value("${spring.elk.index-name}")
     private String indexName;
 
@@ -34,18 +33,16 @@ public class PreprocessService {
                 .map(embeddingService::getEmbedding)
                 .toList();
 
-        Map<String, StoreSearchDoc> docs = IntStream.range(0, stores.size())
-                .boxed()
-                .collect(Collectors.toMap(
-                        i -> stores.get(i).getCrtrYm(),
-                        i -> new StoreSearchDoc(stores.get(i), embeddingList.get(i))
-                ));
-
-        List<IndexQuery> queries = docs.entrySet().stream()
-                .map(entry -> new IndexQueryBuilder()
-                        .withIndex(indexName + "-" + entry.getKey())
-                        .withObject(entry.getValue())
-                        .build())
+        List<IndexQuery> queries = IntStream.range(0, stores.size())
+                .mapToObj(i -> {
+                    Store store = stores.get(i);
+                    String crtrYm = store.getCrtrYm();
+                    StoreSearchDoc doc = new StoreSearchDoc(store, embeddingList.get(i));
+                    return new IndexQueryBuilder()
+                            .withIndex(indexName + "-" + crtrYm)
+                            .withObject(doc)
+                            .build();
+                })
                 .toList();
 
         elasticsearchOperations.bulkIndex(queries, StoreSearchDoc.class);
@@ -56,6 +53,7 @@ public class PreprocessService {
         String MidCatNm = store.getMidCatNm();
         String SmallCatNm = store.getSmallCatNm();
 
+        // TODO: 벡터 생성 대상 문장 생성
         String contextString = storeNm + MidCatNm + SmallCatNm;
 
         return contextString; // 예시

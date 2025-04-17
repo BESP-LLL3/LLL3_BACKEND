@@ -13,7 +13,7 @@ public class StoreHelperService {
     private final StoreRepository storeRepository;
 
     public List<Store> getStoreAll() {
-        return storeRepository.findAll();
+        return storeRepository.findAllByBranchNmIsNullOrBranchNmEquals("");
     }
 }
 
