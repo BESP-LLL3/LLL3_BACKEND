@@ -1,0 +1,205 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  application:
+    name: sangchu
+
+  profiles:
+    active: ${PROFILE}
+
+# 필요하다면 시큐리티 설정
+  # security:
+  #   oauth2.client:
+  #     authenticationScheme: header
+  #     registration:
+  #       kakao:
+  #         redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
+  #         authorization-grant-type: authorization_code
+  #         scope: profile_nickname, profile_image, account_email
+  #     provider:
+  #       kakao:
+  #         authorization-uri: "https://kauth.kakao.com/oauth/authorize"
+  #         token-uri: "https://kauth.kakao.com/oauth/token"
+  #         user-info-uri: "https://kapi.kakao.com/v2/user/me"
+  #         user-name-attribute: id
+
+#swagger 설정 yml
+springdoc:
+  swagger-ui:
+    path: /api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+#JWT 토큰 필요하다면 해당 세팅 변경후 설정
+# app:
+#   auth:
+#     tokenSecret: 926D96C90030DD58429D2751AC1BDBBC
+#     refreshTokenSecret: DF15DFAE0F4C935FEC3C6D894E783DFF
+
+
+
+---
+spring.config.activate.on-profile: local
+
+# =========================== LOCAL  ===========================
+
+spring:
+  # 데이터 소스 설정
+
+  datasource:
+    url: ${MySQL_URL}
+    username: ${MySQL_USER}
+    password: ${MySQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  elasticsearch:
+    uris: ${ES_URI}
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: false
+
+  #   Redis 설정, 필요하다면
+  cache:
+     type: redis
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+
+
+
+
+# Oauth2를 붙인다면 해당 키값입력해서 세팅
+  # security:
+  #   oauth2.client:
+  #     registration:
+  #       kakao:
+  #         client-id: 
+  #         client-secret: 
+  #         client-authentication-method: POST
+
+
+
+# cors 설정
+# 프론트 nginx를 띄운다면
+cors:
+  allowed-origins: "*"
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: "*"
+  allowed-Credentials: false
+  max-age: 3600
+
+# 디버깅 용도
+logging-level:
+  org.hibernate.SQL: debug
+  org.hibernate.type: trace
+  org.springframework.data.elasticsearch.client: debug
+
+# info:
+#   web:
+#     frontUrl: "http://localhost:8080"
+#     domain: "localhost"
+
+
+# 클라우드 배포 시 사용한다면
+# cloud:
+#   aws:
+#     credentials:
+#       accessKey: 
+#       secretKey: 
+#     s3:
+#       bucket: 
+#       dir: 
+#     region:
+#       static: 
+#     stack:
+#       auto: false
+
+# JWT토큰 쓴다면 해당 유효기간 설정
+# app:
+#   auth:
+#     refreshTokenExpiry: 604800000
+#     tokenExpiry: 604800000
+
+
+
+# 실제 배포 Yml설정을 한다면 아래와 같이 내용을 채워서 작성
+# ---
+# spring.config.activate.on-profile: main
+# # =======================================  MAIN  =======================================
+
+# spring:
+#   # 데이터 소스 설정
+#   datasource:
+#     url: 
+#     driverClassName: com.mysql.cj.jdbc.Driver
+#     username: 
+#     password: 
+
+
+#   jpa:
+#     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+#     hibernate:
+#       ddl-auto: validate
+#     properties:
+#       hibernate:
+#         show_sql: true
+#         format_sql: false
+#         use_sql_comments: false
+
+#   security:
+#     oauth2.client:
+#       registration:
+#         kakao:
+#           client-id: "b518ebe7f6c47d5c22fee49a57ca14b6"
+#           client-secret: "tKTjdG5MkbyEFulzMNAhgHpPbYxD8f12"
+#           client-authentication-method: POST
+#   # Redis 설정
+#   cache:
+#     type: redis
+#   redis:
+#     host: 
+#     port: 6379
+
+#   # cors 설정
+# cors:
+#   allowed-origins: "http://localhost:3000"
+#   allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+#   allowed-headers: "*"
+#   allowed-credentials: false
+#   max-age: 3600
+
+# info:
+#   web:
+#     frontUrl: ""
+#     domain: ""
+
+
+# cloud:
+#   aws:
+#     credentials:
+#       accessKey: 
+#       secretKey: 
+#     s3:
+#       bucket: 
+#       dir: 
+#     region:
+#       static: 
+#     stack:
+#       auto: false
+
+# app:
+#   auth:
+#     tokenExpiry: 1800000
+#     refreshTokenExpiry: 172800000
+
+# ---
