@@ -1,4 +1,4 @@
-package com.sangchu.batch.preprocess.entity;
+package com.sangchu.embedding.entity;
 
 import lombok.Getter;
 
