@@ -4,8 +4,8 @@ import com.sangchu.batch.patch.entity.Store;
 import com.sangchu.batch.patch.service.StoreHelperService;
 import com.sangchu.elasticsearch.MorphologicalAnalysis;
 import com.sangchu.embedding.entity.StoreSearchDoc;
-import com.sangchu.embedding.service.EmbeddingHelperService;
 
+import com.sangchu.embedding.service.EmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ public class PreprocessService {
 
     private final ElasticsearchOperations elasticsearchOperations;
     private final StoreHelperService storeHelperService;
-    private final EmbeddingHelperService embeddingHelperService;
+    private final EmbeddingService embeddingService;
     private final MorphologicalAnalysis morphologicalAnalysis;
     
     @Value("${spring.elk.index-name}")
@@ -32,10 +32,11 @@ public class PreprocessService {
     public void indexAll() {
         List<Store> stores = storeHelperService.getStoreAll();
 
-        List<Embedding> embeddingList = stores.stream()
-            .map(this::makeContextString)
-            .map(embeddingHelperService::getEmbedding)
-            .toList();
+        List<String> contexts = stores.stream()
+                .map(this::makeContextString)
+                .toList();
+
+        List<Embedding> embeddingList = embeddingService.getBatchEmbeddings(contexts);
 
         List<IndexQuery> queries = IntStream.range(0, stores.size())
                 .mapToObj(i -> {
@@ -43,7 +44,7 @@ public class PreprocessService {
                     String crtrYm = store.getCrtrYm();
 
                     List<String> tokens = morphologicalAnalysis.extractNouns(store.getStoreNm());
-                    StoreSearchDoc doc = new StoreSearchDoc(store, embeddingList.get(i), tokens); // tokens 함께 저장
+                    StoreSearchDoc doc = new StoreSearchDoc(store, embeddingList.get(i), tokens);
 
                     return new IndexQueryBuilder()
                         .withIndex(indexName + "-" + crtrYm)
