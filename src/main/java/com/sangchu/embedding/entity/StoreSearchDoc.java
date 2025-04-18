@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -38,6 +40,8 @@ public class StoreSearchDoc {
 	@Field(type = FieldType.Keyword)
 	private String smallCatNm;
 
+	@Field(type = FieldType.Keyword)
+	private List<String> tokens;
 
 	// 768 <- huggingface
 	@Field(type = FieldType.Dense_Vector, dims = 1536)
@@ -47,13 +51,13 @@ public class StoreSearchDoc {
 		this.vector = vector;
 	}
 
-    public StoreSearchDoc(Store store, Embedding embedding) {
+    public StoreSearchDoc(Store store, Embedding embedding, List<String> tokens) {
         this.storeId = store.getStoreId();
 		this.storeNm = store.getStoreNm();
         this.midCatNm = store.getMidCatNm();
         this.smallCatNm = store.getSmallCatNm();
         this.setVectorFromAi(embedding.getOutput());
-
+        this.tokens = tokens;
     }
 
 }
