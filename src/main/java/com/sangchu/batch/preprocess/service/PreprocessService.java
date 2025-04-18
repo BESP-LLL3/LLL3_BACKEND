@@ -2,6 +2,7 @@ package com.sangchu.batch.preprocess.service;
 
 import com.sangchu.batch.patch.entity.Store;
 import com.sangchu.batch.patch.service.StoreHelperService;
+import com.sangchu.elasticsearch.MorphologicalAnalysis;
 import com.sangchu.embedding.entity.StoreSearchDoc;
 import com.sangchu.embedding.service.EmbeddingHelperService;
 
@@ -23,6 +24,7 @@ public class PreprocessService {
     private final ElasticsearchOperations elasticsearchOperations;
     private final StoreHelperService storeHelperService;
     private final EmbeddingHelperService embeddingHelperService;
+    private final MorphologicalAnalysis morphologicalAnalysis;
     
     @Value("${spring.elk.index-name}")
     private String indexName;
@@ -31,19 +33,22 @@ public class PreprocessService {
         List<Store> stores = storeHelperService.getStoreAll();
 
         List<Embedding> embeddingList = stores.stream()
-                .map(this::makeContextString)
-                .map(embeddingHelperService::getEmbedding)
-                .toList();
+            .map(this::makeContextString)
+            .map(embeddingHelperService::getEmbedding)
+            .toList();
 
         List<IndexQuery> queries = IntStream.range(0, stores.size())
                 .mapToObj(i -> {
                     Store store = stores.get(i);
                     String crtrYm = store.getCrtrYm();
-                    StoreSearchDoc doc = new StoreSearchDoc(store, embeddingList.get(i));
+
+                    List<String> tokens = morphologicalAnalysis.extractNouns(store.getStoreNm());
+                    StoreSearchDoc doc = new StoreSearchDoc(store, embeddingList.get(i), tokens); // tokens 함께 저장
+
                     return new IndexQueryBuilder()
-                            .withIndex(indexName + "-" + crtrYm)
-                            .withObject(doc)
-                            .build();
+                        .withIndex(indexName + "-" + crtrYm)
+                        .withObject(doc)
+                        .build();
                 })
                 .toList();
 
