@@ -121,13 +121,13 @@ public class Store {
 	@Column(length = 4, nullable = false)
 	private String newZipCd;
 
-	@Column(length = 5)
+	@Column(length = 50)
 	private String block;
 
-	@Column(length = 5)
+	@Column(length = 50)
 	private String floor;
 
-	@Column(length = 5)
+	@Column(length = 50)
 	private String room;
 
 	@Column(precision = 15, scale = 12, nullable = false, name = "coord_x")

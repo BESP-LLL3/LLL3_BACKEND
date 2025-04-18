@@ -39,3 +39,6 @@ elasticsearch/data/
 
 ### VS Code ###
 .vscode/
+
+### ElasticSearch ###
+elasticsearch/data
