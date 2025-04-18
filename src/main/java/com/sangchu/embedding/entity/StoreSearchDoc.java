@@ -20,7 +20,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(indexName = "store_search_doc")
+@Document(indexName = "store_search_doc-*")
 @ToString
 public class StoreSearchDoc {
 

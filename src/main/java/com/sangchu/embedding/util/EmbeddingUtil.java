@@ -3,6 +3,7 @@ package com.sangchu.embedding.util;
 import com.sangchu.embedding.entity.EmbeddingResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -10,14 +11,13 @@ import java.util.Map;
 
 import org.springframework.ai.embedding.Embedding;
 
+@Component
 public class EmbeddingUtil {
 
-    @Value("${HUGGINGFACE_URI}")
-    private static String huggingfaceUri;
+    @Value("${spring.huggingface.uri}")
+    private String huggingfaceUri;
 
-    public static Embedding getEmbedding(String keyword) {
-        
-        String url = huggingfaceUri;
+    public Embedding getEmbedding(String keyword) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -29,7 +29,7 @@ public class EmbeddingUtil {
         HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<EmbeddingResponseDto> response = restTemplate.postForEntity(
-                url, request, EmbeddingResponseDto.class);
+                huggingfaceUri, request, EmbeddingResponseDto.class);
 
         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
             float[] vector = response.getBody().getEmbedding();

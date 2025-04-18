@@ -6,6 +6,8 @@ spring:
     name: sangchu
   elk:
     index-name: ${INDEX_NAME}
+  huggingface:
+    uri: ${HUGGINGFACE_URI}
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
