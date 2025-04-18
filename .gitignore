@@ -38,3 +38,6 @@ db/
 
 ### VS Code ###
 .vscode/
+
+### ElasticSearch ###
+elasticsearch/data
