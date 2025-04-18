@@ -1,6 +1,6 @@
-package com.sangchu.batch.preprocess.service;
+package com.sangchu.embedding.util;
 
-import com.sangchu.batch.preprocess.entity.EmbeddingResponseDto;
+import com.sangchu.embedding.entity.EmbeddingResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -10,17 +10,16 @@ import java.util.Map;
 
 import org.springframework.ai.embedding.Embedding;
 
-@Service
-public class EmbeddingService {
-
-    private final RestTemplate restTemplate = new RestTemplate();
+public class EmbeddingUtil {
 
     @Value("${HUGGINGFACE_URI}")
-    private String huggingfaceUri;
+    private static String huggingfaceUri;
 
-    public Embedding getEmbedding(String keyword) {
+    public static Embedding getEmbedding(String keyword) {
         
         String url = huggingfaceUri;
+
+        RestTemplate restTemplate = new RestTemplate();
 
         Map<String, String> requestBody = Map.of("keyword", keyword);
 

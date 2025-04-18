@@ -59,6 +59,7 @@ spring:
 
   elasticsearch:
     uris: ${ES_URI}
+    limit: ${ES_LIMIT}
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect

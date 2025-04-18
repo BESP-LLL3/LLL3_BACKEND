@@ -1,11 +1,12 @@
-package com.sangchu.batch.preprocess.entity;
+package com.sangchu.embedding.entity;
 
-import com.sangchu.batch.patch.entity.Store;
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.sangchu.batch.patch.entity.Store;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -2,7 +2,9 @@ package com.sangchu.batch.preprocess.service;
 
 import com.sangchu.batch.patch.entity.Store;
 import com.sangchu.batch.patch.service.StoreHelperService;
-import com.sangchu.batch.preprocess.entity.StoreSearchDoc;
+import com.sangchu.embedding.entity.StoreSearchDoc;
+import com.sangchu.embedding.service.EmbeddingHelperService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +22,7 @@ public class PreprocessService {
 
     private final ElasticsearchOperations elasticsearchOperations;
     private final StoreHelperService storeHelperService;
-    private final EmbeddingService embeddingService;
+    private final EmbeddingHelperService embeddingHelperService;
     
     @Value("${spring.elk.index-name}")
     private String indexName;
@@ -30,7 +32,7 @@ public class PreprocessService {
 
         List<Embedding> embeddingList = stores.stream()
                 .map(this::makeContextString)
-                .map(embeddingService::getEmbedding)
+                .map(embeddingHelperService::getEmbedding)
                 .toList();
 
         List<IndexQuery> queries = IntStream.range(0, stores.size())
