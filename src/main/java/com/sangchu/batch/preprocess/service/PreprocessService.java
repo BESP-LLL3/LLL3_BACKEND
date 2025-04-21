@@ -30,7 +30,7 @@ public class PreprocessService {
     private String indexName;
 
     public void indexAll() {
-        List<Store> stores = storeHelperService.getStoreAll();
+        List<Store> stores = storeHelperService.getStoreWithoutFranchise(0, 2000);
 
         List<String> contexts = stores.stream()
                 .map(this::makeContextString)
