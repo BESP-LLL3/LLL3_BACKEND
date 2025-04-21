@@ -15,7 +15,7 @@ import org.springframework.ai.embedding.Embedding;
 @Component
 public class EmbeddingService {
 
-    @Value("${HUGGINGFACE_URI}")
+    @Value("${embed.huggingface.uri}")
     private String uri;
 
     @Value("${HUGGINGFACE_EMBED_ENDPOINT}")

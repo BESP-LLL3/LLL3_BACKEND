@@ -36,7 +36,7 @@ services:
     networks:
       - LLL3_network
     environment:
-      ELASTICSEARCH_HOSTS: ${ES_HOST}
+      ELASTICSEARCH_HOSTS: "http://${ES_HOST}:${ES_EXTERNAL_PORT_1}"
 
   mysql:
     image: mysql:8.0
@@ -46,12 +46,12 @@ services:
       - ./sql:/docker-entrypoint-initdb.d
       - ./db/mysql/data:/var/lib/mysql
     ports:
-      - "${DB_INTERNAL_PORT}:${DB_EXTERNAL_PORT}"
+      - "${MYSQL_EXTERNAL_PORT}:${MYSQL_INTERNAL_PORT}"
     environment:
-      - MYSQL_ROOT_PASSWORD=${DATABASE_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${DATABASE_NAME}
-      - MYSQL_USER=${DATABASE_USER}
-      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DB_NAME}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
 
   redis:

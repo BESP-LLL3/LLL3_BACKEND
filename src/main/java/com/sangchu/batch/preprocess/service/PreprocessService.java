@@ -26,7 +26,7 @@ public class PreprocessService {
     private final EmbeddingService embeddingService;
     private final MorphologicalAnalysis morphologicalAnalysis;
     
-    @Value("${spring.elk.index-name}")
+    @Value("${spring.elasticsearch.index-name}")
     private String indexName;
 
     public void indexAll() {
