@@ -36,6 +36,7 @@ dependencies {
 	implementation 'org.seleniumhq.selenium:selenium-java:4.20.0'
 	implementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
 	implementation 'org.seleniumhq.selenium:selenium-devtools-v135:4.31.0'
+	implementation 'com.opencsv:opencsv:5.9'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'

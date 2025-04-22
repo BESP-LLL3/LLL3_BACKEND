@@ -26,7 +26,9 @@ public enum ApiStatus {
 	_FILE_DOWNLOAD_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, 408,"다운로드가 완료되지 않았습니다."),
 	_FILE_DOWNLOAD_FAIL(HttpStatus.FAILED_DEPENDENCY, 424,"파일 크롤링이 실패했습니다."),
 	_FILE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 삭제에 실패했습니다."),
-	_FILE_UNZIP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 압축 해제에 실패했습니다.");
+	_FILE_UNZIP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 압축 해제에 실패했습니다."),
+	_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 로딩에 실패했습니다."),
+	_CSV_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"csv파일 로딩에 실패했습니다.");
 
 
 	private final HttpStatus httpStatus;

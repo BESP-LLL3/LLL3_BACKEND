@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 public class TestController {
@@ -13,7 +15,7 @@ public class TestController {
     private final CrawlerService crawlerService;
 
     @GetMapping("/Test")
-    public void Test() {
+    public void Test() throws IOException {
         crawlerService.getStoreCsvToMySql();
     }
 }

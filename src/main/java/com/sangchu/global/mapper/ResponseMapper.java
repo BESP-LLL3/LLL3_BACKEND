@@ -18,5 +18,5 @@ public class ResponseMapper {
 		BaseResponse<T> response = new ErrorResponse<>(code.getCode(), code.getMessage(), handleClass);
 		return ResponseEntity.status(code.getHttpStatus()).body(response);
 	}
-
 }
+ 

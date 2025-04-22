@@ -3,6 +3,7 @@ package com.sangchu.batch.patch.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -14,7 +15,8 @@ import jakarta.persistence.Id;
 
 @Getter
 @Entity
-public class Store {
+@Builder
+public class Store extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -136,8 +138,11 @@ public class Store {
 	@Column(precision = 15, scale = 12, nullable = false, name = "coord_y")
 	private BigDecimal coordY;
 
-	@CreatedDate
-	@Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime createdAt;
+//	@CreatedDate
+//	@Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+//	private LocalDateTime createdAt;
 
+    public void createCrtrYm(String crtrYm) {
+        this.crtrYm = crtrYm;
+    }
 }
