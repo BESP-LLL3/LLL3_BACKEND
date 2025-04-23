@@ -9,8 +9,8 @@ import com.sangchu.embedding.service.EmbeddingService;
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.stereotype.Component;
 
-import com.sangchu.embedding.entity.StoreSearchDoc;
-import com.sangchu.embedding.repository.StoreSearchDocRepository;
+import com.sangchu.elasticsearch.entity.StoreSearchDoc;
+import com.sangchu.elasticsearch.repository.StoreSearchDocRepository;
 
 import lombok.RequiredArgsConstructor;
 
