@@ -60,7 +60,7 @@ public class ElasticsearchBatchConfig {
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(10);
-        executor.setThreadNamePrefix("elasticsearch-import-task-");
+        executor.setThreadNamePrefix("es-task-");
         executor.initialize();
         return executor;
     }

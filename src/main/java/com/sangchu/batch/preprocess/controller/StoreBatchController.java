@@ -18,12 +18,13 @@ public class StoreBatchController {
     private final Job elasticsearchJob;
 
     @PostMapping("/import/elasticsearch")
-    public String runStoreEmbeddingJob() throws Exception {
+    public String runImportElasticsearchJob() throws Exception {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
         jobLauncher.run(elasticsearchJob, jobParameters);
-        return "mysql -> elasticsearch 작업 시작";
+
+        return "mysql -> elasticsearch 작업";
     }
 } 

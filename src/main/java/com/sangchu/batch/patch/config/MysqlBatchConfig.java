@@ -108,7 +108,7 @@ public class MysqlBatchConfig {
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(10);
-        executor.setThreadNamePrefix("mysql-import-task-");
+        executor.setThreadNamePrefix("mysql-task-");
         executor.initialize();
         return executor;
     }
