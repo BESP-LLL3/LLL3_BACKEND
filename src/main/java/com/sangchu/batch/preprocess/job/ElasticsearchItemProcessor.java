@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StoreProcessor implements ItemProcessor<List<Store>, List<IndexQuery>> {
+public class ElasticsearchItemProcessor implements ItemProcessor<List<Store>, List<IndexQuery>> {
 
     private final EmbeddingService embeddingService;
     private final MorphologicalAnalysis morphologicalAnalysis;

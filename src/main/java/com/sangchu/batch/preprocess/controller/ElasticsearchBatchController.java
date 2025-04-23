@@ -10,20 +10,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/batch")
+@RequestMapping("/test")
 @RequiredArgsConstructor
-public class StoreBatchController {
+public class ElasticsearchBatchController {
 
     private final JobLauncher jobLauncher;
-    private final Job storeEmbeddingJob;
+    private final Job elasticsearchJob;
 
-    @PostMapping("/store-embedding")
-    public String runStoreEmbeddingJob() throws Exception {
+    @PostMapping("/import/elasticsearch")
+    public String runImportElasticsearchJob() throws Exception {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
-        jobLauncher.run(storeEmbeddingJob, jobParameters);
-        return "Store embedding job started";
+        jobLauncher.run(elasticsearchJob, jobParameters);
+
+        return "mysql -> elasticsearch 작업";
     }
 } 

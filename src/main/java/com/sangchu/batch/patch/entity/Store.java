@@ -3,7 +3,10 @@ package com.sangchu.batch.patch.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
@@ -14,7 +17,10 @@ import jakarta.persistence.Id;
 
 @Getter
 @Entity
-public class Store {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Store extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -101,7 +107,6 @@ public class Store {
 	@Column(nullable = false)
 	private String roadNm;
 
-	@Column(nullable = false)
 	private String bldgMainNo;
 
 	private String bldgSubNo;
@@ -109,16 +114,15 @@ public class Store {
 	@Column(length = 25 , nullable = false)
 	private String bldgMgmtNo;
 
-	@Column(nullable = false)
 	private String bldgNm;
 
 	@Column(nullable = false)
 	private String roadAddr;
 
-	@Column(length = 6, nullable = false)
+	@Column(length = 20, nullable = false)
 	private String oldZipCd;
 
-	@Column(length = 4, nullable = false)
+	@Column(length = 20, nullable = false)
 	private String newZipCd;
 
 	@Column(length = 50)
@@ -136,8 +140,13 @@ public class Store {
 	@Column(precision = 15, scale = 12, nullable = false, name = "coord_y")
 	private BigDecimal coordY;
 
-	@CreatedDate
-	@Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private LocalDateTime createdAt;
+//	@CreatedDate
+//	@Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+//	private LocalDateTime createdAt;
+
+    public void createCrtrYm(String crtrYm) {
+        this.crtrYm = crtrYm;
+    }
+
 
 }

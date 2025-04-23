@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class StoreReader implements ItemReader<List<Store>>, ItemStream {
+public class ElasticsearchItemReader implements ItemReader<List<Store>>, ItemStream {
 
     @Autowired
     private StoreHelperService storeHelperService;
