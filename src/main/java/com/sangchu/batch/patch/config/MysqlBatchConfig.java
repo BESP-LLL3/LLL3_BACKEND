@@ -32,7 +32,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 @RequiredArgsConstructor
 public class MysqlBatchConfig {
 
-    private final MysqlItemProcessor storeItemProcessor;
     private final MysqlItemWriter storeItemWriter;
     private final PlatformTransactionManager transactionManager;
     private final JobRepository jobRepository;
@@ -56,7 +55,7 @@ public class MysqlBatchConfig {
         return new StepBuilder("mysqlStep", jobRepository)
                 .<StoreRequestDto, Store>chunk(1000, transactionManager)
                 .reader(storeCsvReader())
-                .processor(storeItemProcessor)
+                .processor(storeItemProcessor())
                 .writer(storeItemWriter)
                 .faultTolerant()
                 .skip(Exception.class)
@@ -87,7 +86,7 @@ public class MysqlBatchConfig {
         return new StepBuilder("mysqlSlaveStep", jobRepository)
                 .<StoreRequestDto, Store>chunk(1000, transactionManager)
                 .reader(csvReader(null))
-                .processor(storeItemProcessor)
+                .processor(storeItemProcessor())
                 .writer(storeItemWriter)
                 .build();
     }
@@ -100,6 +99,12 @@ public class MysqlBatchConfig {
                 .gridSize(4)
                 .taskExecutor(mysqlTaskExecutor())
                 .build();
+    }
+
+    @Bean
+    @StepScope
+    public MysqlItemProcessor storeItemProcessor() {
+        return new MysqlItemProcessor();
     }
 
     @Bean

@@ -18,11 +18,23 @@ public class CsvPartitioner implements Partitioner {
 
         Map<String, ExecutionContext> partitions = new HashMap<>();
         for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            String fileName = file.getAbsolutePath();
+            String crtrYm = extractCrtrYmFromFileName(file.getName());
+
+
             ExecutionContext context = new ExecutionContext();
+            context.putString("crtrYm", crtrYm);
+
             context.putString("fileName", files[i].getAbsolutePath());
             partitions.put("partition" + i, context);
         }
 
         return partitions;
+    }
+
+    private String extractCrtrYmFromFileName(String filename) {
+        String[] parts = filename.split("_");
+        return parts[parts.length - 1].replace(".csv", "");
     }
 }
