@@ -1,9 +1,9 @@
 package com.sangchu.batch.preprocess.config;
 
 import com.sangchu.batch.patch.entity.Store;
-import com.sangchu.batch.preprocess.job.StoreProcessor;
-import com.sangchu.batch.preprocess.job.StoreReader;
-import com.sangchu.batch.preprocess.job.StoreWriter;
+import com.sangchu.batch.preprocess.job.ElasticsearchItemProcessor;
+import com.sangchu.batch.preprocess.job.ElasticsearchItemReader;
+import com.sangchu.batch.preprocess.job.ElasticsearchItemWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -23,44 +23,44 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
-public class StoreJobConfig {
+public class ElasticsearchBatchConfig {
 
-    private final StoreReader storeReader;
-    private final StoreProcessor storeProcessor;
-    private final StoreWriter storeWriter;
+    private final ElasticsearchItemReader elasticsearchItemReader;
+    private final ElasticsearchItemProcessor elasticsearchItemProcessor;
+    private final ElasticsearchItemWriter elasticsearchItemWriter;
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
 
     @Bean
-    public Job storeEmbeddingJob() {
-        return new JobBuilder("storePreprocessJob", jobRepository)
-                .start(storeStep())
+    public Job elasticsearchJob() {
+        return new JobBuilder("elasticsearchJob", jobRepository)
+                .start(elasticsearchStep())
                 .build();
     }
 
     @Bean
     @Transactional(propagation = Propagation.REQUIRED)
-    public Step storeStep() {
-        return new StepBuilder("storeStep", jobRepository)
+    public Step elasticsearchStep() {
+        return new StepBuilder("elasticsearchStep", jobRepository)
                 .<List<Store>, List<IndexQuery>>chunk(1, transactionManager)
-                .reader(storeReader)
-                .processor(storeProcessor)
-                .writer(storeWriter)
+                .reader(elasticsearchItemReader)
+                .processor(elasticsearchItemProcessor)
+                .writer(elasticsearchItemWriter)
                 .faultTolerant()
                 .skip(Exception.class)
                 .skipLimit(100)
-                .taskExecutor(taskExecutor())
+                .taskExecutor(elasticsearchTaskExecutor())
                 .build();
     }
 
     @Bean
-    public TaskExecutor taskExecutor() {
+    public TaskExecutor elasticsearchTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4); // 스레드 풀 크기
+        executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(10);
-        executor.setThreadNamePrefix("store-task-");
+        executor.setThreadNamePrefix("elasticsearch-import-task-");
         executor.initialize();
         return executor;
     }

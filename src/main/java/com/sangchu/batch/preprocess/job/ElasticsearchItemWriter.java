@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StoreWriter implements ItemWriter<List<IndexQuery>> {
+public class ElasticsearchItemWriter implements ItemWriter<List<IndexQuery>> {
 
     private final ElasticsearchOperations elasticsearchOperations;
 
