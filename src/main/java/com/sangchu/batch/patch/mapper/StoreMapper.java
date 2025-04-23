@@ -10,8 +10,6 @@ import java.math.BigDecimal;
 public class StoreMapper {
 
     public static Store toEntity(String crtrYm, StoreRequestDto storeRequestDto) {
-        log.info("storeRequestDto value1 : {}", storeRequestDto.getCoordX());
-        log.info("storeRequestDto value2 : {}", storeRequestDto.getCoordY());
         return Store.builder()
                .crtrYm(crtrYm)
                .storeId(safe(storeRequestDto.getStoreId()))
