@@ -79,10 +79,9 @@ public class CrawlerService {
     );
 
     // csv 파일을 가져오는 메서드
-    public void getStoreCsvToMySql() throws IOException {
-//        crwaling();
-//        fileUnZip();
-        importAllCsvFromFolder();
+    public void crwalingCsvData() {
+        crwaling();
+        fileUnZip();
     }
 
     /**
@@ -128,7 +127,7 @@ public class CrawlerService {
         }
     }
 
-    private void resetDirectory(Path downloadDir) {
+    public void resetDirectory(Path downloadDir) {
         if (Files.exists(downloadDir)) {
             try {
                 Files.walk(downloadDir)
@@ -223,63 +222,6 @@ public class CrawlerService {
             log.error("파일 목록 가져오기 실패", e);
             throw new CustomException(ApiStatus._FILE_UNZIP_FAILED);
         }
-    }
-
-    @Transactional
-    public void importAllCsvFromFolder() throws IOException {
-        Path dirPath = Paths.get("src/main/resources/data");
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:src/main/resources/data/*.csv");
-
-        List<Store> allStores = new ArrayList<>();
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.csv")) {
-            for (Path path : stream) {
-                if (matcher.matches(path)) {
-                    log.info("Importing file: " + path.getFileName());
-                    List<Store> storeList = readCsvFile(path);
-                    allStores.addAll(storeList);
-                }
-            }
-        }
-
-//        storeRepository.saveAll(allStores);
-        log.info("총 저장된 상점 수: " + allStores.size());
-    }
-
-    private List<Store> readCsvFile(Path path) {
-        try {
-            HeaderColumnNameTranslateMappingStrategy<StoreRequestDto> strategy = new HeaderColumnNameTranslateMappingStrategy<>();
-            strategy.setType(StoreRequestDto.class);
-            strategy.setColumnMapping(columnMapping);
-
-            List<StoreRequestDto> stores = new CsvToBeanBuilder<StoreRequestDto>(new FileReader(path.toFile()))
-                            .withMappingStrategy(strategy)
-//                            .withSkipLines(1)
-                            .withSeparator(',')
-                            .build()
-                            .parse();
-            for (StoreRequestDto store : stores) {
-                log.info("log : {}", store.getBldgMainNo());
-            }
-            // 기준년월 주입
-            String crtrYm = extractCrtrYmFromFileName(path);
-            log.info("csv 파싱 완료", path.getFileName(), crtrYm);
-
-            return stores.stream()
-                   .map(store -> StoreMapper.toEntity(crtrYm, store))
-                   .toList();
-
-        } catch (Exception e) {
-            log.error("CSV 파싱 실패: " + path.getFileName() + " → " + e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    private String extractCrtrYmFromFileName(Path path) {
-        String filename = path.getFileName().toString();
-        String[] parts = filename.split("_");
-        String lastPart = parts[parts.length - 1];
-        return lastPart.replace(".csv", "");
     }
 
 }
