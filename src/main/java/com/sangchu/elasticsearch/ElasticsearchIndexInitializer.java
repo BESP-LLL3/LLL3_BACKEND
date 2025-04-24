@@ -36,7 +36,6 @@ public class ElasticsearchIndexInitializer {
             @Override
             public void handleError(ClientHttpResponse response) throws IOException {
                 // 404는 무시
-                // TODO: 무시하는 핸들러 만들기
                 if (response.getStatusCode() != HttpStatus.NOT_FOUND) {
                     super.handleError(response);
                 }
