@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Optional;
 
 @Slf4j
 public class UtilFile {
@@ -39,19 +40,24 @@ public class UtilFile {
         }
     }
 
-    public static String extractCrtrYmFromFileName(String filename) {
+    public static Optional<String> extractCrtrYmFromFileName(String filename) {
         String[] parts = filename.split("_");
-        return parts[parts.length - 1].replace(".csv", "");
+
+        if (!filename.endsWith(".csv") || 2 > parts.length) {
+            return Optional.empty();
+        }
+
+        return Optional.of(parts[parts.length - 1].replace(".csv", ""));
     }
 
-    public static String getAnyCsvFileName(Path dirPath) {
+    public static Optional<String> getAnyCsvFileName(Path dirPath) {
         File folder = dirPath.toFile();
         File[] csvFiles = folder.listFiles((dir, name) -> name.endsWith(".csv"));
 
-        if (csvFiles != null && csvFiles.length > 0) {
-            return csvFiles[0].getName();
+        if (null != csvFiles && 0 < csvFiles.length) {
+            return Optional.of(csvFiles[0].getName());
         }
 
-        return null;
+        return Optional.empty();
     }
 }

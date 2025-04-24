@@ -1,6 +1,8 @@
 package com.sangchu.preprocess.etl.job;
 
+import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.UtilFile;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.stereotype.Component;
@@ -20,7 +22,8 @@ public class CsvPartitioner implements Partitioner {
         Map<String, ExecutionContext> partitions = new HashMap<>();
         for (int i = 0; i < files.length; i++) {
             File file = files[i];
-            String crtrYm = UtilFile.extractCrtrYmFromFileName(file.getName());
+            String crtrYm = UtilFile.extractCrtrYmFromFileName(file.getName())
+                .orElseThrow(() -> new CustomException(ApiStatus._FILE_READ_FAILED));
 
             ExecutionContext context = new ExecutionContext();
             context.putString("crtrYm", crtrYm);
