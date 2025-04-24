@@ -19,8 +19,9 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
     SELECT * FROM store
     WHERE (branch_nm IS NULL OR branch_nm = :empty)
     AND id > :lastId
+    AND crtr_ym = (SELECT MAX(crtr_ym) FROM store)
     ORDER BY id ASC
     LIMIT :size
     """, nativeQuery = true)
-    List<Store> findStoresAfterId(@Param("empty") String empty, @Param("lastId") Integer lastId, @Param("size") int size);
+    List<Store> findRecentStoresAfterId(@Param("empty") String empty, @Param("lastId") Integer lastId, @Param("size") int size);
 }
