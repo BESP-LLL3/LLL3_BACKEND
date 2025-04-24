@@ -60,6 +60,34 @@ public class ElasticsearchItemProcessor implements ItemProcessor<List<Store>, Li
     }
 
     private String makeContextString(Store store) {
-        return store.getStoreNm() + store.getMidCatNm() + store.getSmallCatNm();
+        String storeNm = store.getStoreNm();
+        String largeCatNm = store.getLargeCatNm();
+        String midCatNm = store.getMidCatNm();
+        String smallCatNm = store.getSmallCatNm();
+
+        StringBuilder sb = new StringBuilder();
+
+        // 중요도에 따른 강조 반복
+        sb.append(repeatEmphasis(storeNm, 15));
+        sb.append(repeatEmphasis(smallCatNm, 10));
+        sb.append(repeatEmphasis(midCatNm, 5));
+        sb.append(repeatEmphasis(largeCatNm, 1));
+
+        // 문장 형태로 정리
+        String contextString = String.format(
+                "%s는 %s 매장입니다. 참고로, 이 매장은 %s 업종에 속하며 %s 업종의 일종입니다.",
+                storeNm,
+                smallCatNm,
+                midCatNm,
+                largeCatNm
+        );
+
+        // 강조 문구 + 문장 결합
+        return sb.toString().trim() + ". " + contextString;
     }
+
+    private String repeatEmphasis(String word, int count) {
+        return word.concat(" ").repeat(count);
+    }
+    
 }

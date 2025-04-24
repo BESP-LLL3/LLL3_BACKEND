@@ -1,5 +1,8 @@
 package com.sangchu.elasticsearch.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.cat.IndicesResponse;
+import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
 import com.sangchu.elasticsearch.entity.RecentIndexingDoc;
 import com.sangchu.elasticsearch.entity.StoreSearchDoc;
 import com.sangchu.elasticsearch.repository.RecentIndexingDocRepository;
@@ -16,15 +19,18 @@ import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RecentIndexingService {
+public class EsHelperService {
     private final RecentIndexingDocRepository recentIndexingDocRepository;
     private final ElasticsearchOperations elasticsearchOperations;
-
+    private final ElasticsearchClient elasticsearchClient;
 
     public void indexRecentCrtrYm(String crtrYm) {
         try {
@@ -59,4 +65,18 @@ public class RecentIndexingService {
         return searchHits.get().map(SearchHit::getContent).toList();
     }
 
+    public List<String> getStoreSearchDocIndices() throws IOException {
+        try {
+            IndicesResponse response = elasticsearchClient.cat().indices();
+
+            return response.valueBody().stream()
+                    .map(IndicesRecord::index)
+                    .filter(Objects::nonNull)
+                    .filter(name -> name.startsWith("store_search_doc-"))
+                    .collect(Collectors.toList());
+
+        } catch (IOException e) {
+            throw new CustomException(ApiStatus._ES_INDEX_LIST_FETCH_FAIL, "Elasticsearch 인덱스 목록 조회 중 예외 발생");
+        }
+    }
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sangchu.elasticsearch.service.RecentIndexingService;
+import com.sangchu.elasticsearch.service.EsHelperService;
 import com.sangchu.embedding.service.EmbeddingService;
 import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.statuscode.ApiStatus;
@@ -12,7 +12,6 @@ import org.springframework.ai.embedding.Embedding;
 import org.springframework.stereotype.Component;
 
 import com.sangchu.elasticsearch.entity.StoreSearchDoc;
-import com.sangchu.elasticsearch.repository.StoreSearchDocRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CosineSimilarity {
 	private final EmbeddingService embeddingService;
-	private final RecentIndexingService recentIndexingService;
+	private final EsHelperService esHelperService;
 
 	public static double cosineSimilarity(Embedding vec1, float[] vec2) {
 		float[] a = vec1.getOutput();
@@ -47,7 +46,7 @@ public class CosineSimilarity {
 	public Map<String, Integer> getWordFrequency(String keyword) {
 		Embedding keywordEmbedding = embeddingService.getEmbedding(keyword);
 
-		List<StoreSearchDoc> allDocs = recentIndexingService.findRecentCrtrYmDocs();
+		List<StoreSearchDoc> allDocs = esHelperService.findRecentCrtrYmDocs();
 		// 1. 유사도 필터링 (0.5 이상)
 		List<StoreSearchDoc> similarDocs = allDocs.stream()
 			.filter(doc -> cosineSimilarity(keywordEmbedding, doc.getVector()) >= 0.5)
