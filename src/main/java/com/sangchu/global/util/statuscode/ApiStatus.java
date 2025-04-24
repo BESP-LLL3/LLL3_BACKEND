@@ -35,7 +35,8 @@ public enum ApiStatus {
 	_READ_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "DB 읽기에 실패하였습니다."),
 	_ES_CRTRYM_INDEXING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "최근 분기 INDEXING 작업에 실패하였습니다."),
 	_ES_BULK_INDEXING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "Index 생성 중 에러 발생"),
-	_ES_INDEX_QUERY_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "IndexQuery 생성 중 에러 발생");
+	_ES_INDEX_QUERY_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "IndexQuery 생성 중 에러 발생"),
+	_RECENT_CRTRYM_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,500 ,"최근 분기 정보가 없습니다.");
 
 
 	private final HttpStatus httpStatus;
