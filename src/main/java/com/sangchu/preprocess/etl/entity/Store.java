@@ -138,13 +138,4 @@ public class Store extends BaseTimeEntity {
 	@Column(precision = 15, scale = 12, nullable = false, name = "coord_y")
 	private BigDecimal coordY;
 
-//	@CreatedDate
-//	@Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-//	private LocalDateTime createdAt;
-
-//  public void createCrtrYm(String crtrYm) {
-//      this.crtrYm = crtrYm;
-//  }
-
-
 }

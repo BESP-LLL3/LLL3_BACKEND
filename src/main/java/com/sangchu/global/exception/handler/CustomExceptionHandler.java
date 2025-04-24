@@ -18,7 +18,7 @@ public class CustomExceptionHandler {
 	@ExceptionHandler(CustomException.class)
 	public ResponseEntity<BaseResponse<Object>> handleApiException(CustomException ex) {
 		Class<?> origin = extractOriginClass(ex);
-		log.error("API 예외 발생: {} from {}", ex.getStatus().getMessage(), origin.getSimpleName());
+		log.error("API 예외 발생: {} from {}", ex.getMessage(), origin.getSimpleName());
 		return ResponseMapper.errorOf(ex.getStatus(), origin);
 	}
 

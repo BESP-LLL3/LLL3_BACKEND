@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import com.sangchu.embedding.service.EmbeddingService;
+import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +27,7 @@ public class CosineSimilarity {
 		float[] b = vec2;
 
 		if (a.length != b.length) {
-			//TODO: Exception 추후 수정
-			throw new IllegalArgumentException("벡터 길이 불일치");
+			throw new CustomException(ApiStatus._VECTOR_LENGTH_DIFFERENT);
 		}
 
 		double dot = 0.0, normA = 0.0, normB = 0.0;
@@ -58,7 +59,6 @@ public class CosineSimilarity {
 		Map<String, Integer> wordFrequency = new HashMap<>();
 
 		for (StoreSearchDoc doc : similarDocs) {
-            // TODO: Document에서 token들을 갖는 필드 추가 후 getTokens()로 변경
 			 List<String> tokens = doc.getTokens();
 			for (String token : tokens) {
 				wordFrequency.put(token, wordFrequency.getOrDefault(token, 0) + 1);

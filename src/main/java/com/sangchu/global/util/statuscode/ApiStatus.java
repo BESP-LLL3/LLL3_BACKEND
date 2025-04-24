@@ -28,7 +28,14 @@ public enum ApiStatus {
 	_FILE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 삭제에 실패했습니다."),
 	_FILE_UNZIP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 압축 해제에 실패했습니다."),
 	_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 로딩에 실패했습니다."),
-	_CSV_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"csv파일 로딩에 실패했습니다.");
+	_CSV_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"csv파일 로딩에 실패했습니다."),
+	_CSV_FILEPATH_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, 500, "CSV 파일 경로가 잘못되었습니다"),
+	_EMBEDDING_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 500, "임베딩 서버 호출에 실패했습니다."),
+	_VECTOR_LENGTH_DIFFERENT(HttpStatus.BAD_REQUEST, 400, "벡터 길이가 일치하지 않습니다."),
+	_READ_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "DB 읽기에 실패하였습니다."),
+	_ES_CRTRYM_INDEXING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "최근 분기 INDEXING 작업에 실패하였습니다."),
+	_ES_BULK_INDEXING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "Index 생성 중 에러 발생"),
+	_ES_INDEX_QUERY_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "IndexQuery 생성 중 에러 발생");
 
 
 	private final HttpStatus httpStatus;

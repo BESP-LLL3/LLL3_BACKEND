@@ -1,5 +1,7 @@
 package com.sangchu.preprocess.indexing.job;
 
+import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import com.sangchu.preprocess.etl.entity.Store;
 import com.sangchu.preprocess.etl.service.StoreHelperService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,32 +19,20 @@ public class ElasticsearchItemReader implements ItemReader<List<Store>>, ItemStr
 
     @Autowired
     private StoreHelperService storeHelperService;
-//    private int currentPage = 0;
     private Long lastSeenId = 0L;
 
     @Override
     public void open(ExecutionContext executionContext) {
-//        currentPage = executionContext.getInt("store.currentPage", 0);
         lastSeenId = executionContext.getLong("store.lastSeenId", 0L);
     }
 
     @Override
     public void update(ExecutionContext executionContext) {
-//        executionContext.putInt("store.currentPage", currentPage);
         executionContext.putLong("store.lastSeenId", lastSeenId);
     }
 
     @Override
     public List<Store> read() {
-        // 페이지 기반으로 읽기
-//        try {
-//            List<Store> stores = storeHelperService.getStoreWithoutFranchise(currentPage++, 1000);
-//            return stores.isEmpty() ? null : stores;
-//        } catch (Exception e) {
-//            log.error("페이지 {} 처리 중 에러 발생", currentPage - 1, e);
-//            throw e; // 에러 발생 시 Spring Batch가 ExecutionContext에 상태를 저장
-//        }
-
         // ID 기반으로 읽기
         try {
             log.info("ID {} 이후 데이터 읽기 시작", lastSeenId);
@@ -57,8 +47,7 @@ public class ElasticsearchItemReader implements ItemReader<List<Store>>, ItemStr
 
             return stores;
         } catch (Exception e) {
-            log.error("ID {} 이후 처리 중 에러 발생", lastSeenId, e);
-            throw e;
+            throw new CustomException(ApiStatus._READ_FAIL, "ID " + lastSeenId + " 이후 처리 중 에러 발생");
         }
     }
 }

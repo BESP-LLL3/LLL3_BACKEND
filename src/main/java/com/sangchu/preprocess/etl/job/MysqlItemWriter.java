@@ -16,8 +16,7 @@ public class MysqlItemWriter implements ItemWriter<Store> {
     private final StoreRepository storeRepository;
 
     @Override
-    public void write(Chunk<? extends Store> chunk) throws Exception {
-
+    public void write(Chunk<? extends Store> chunk) {
         storeRepository.saveAll(chunk);
     }
 }

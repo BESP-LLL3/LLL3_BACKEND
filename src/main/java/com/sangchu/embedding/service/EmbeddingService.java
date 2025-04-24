@@ -2,6 +2,8 @@ package com.sangchu.embedding.service;
 
 import com.sangchu.embedding.entity.EmbeddingBatchInboundDto;
 import com.sangchu.embedding.entity.EmbeddingInboundDto;
+import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -44,8 +46,7 @@ public class EmbeddingService {
 
             return new Embedding(vector, 0);
         } else {
-            // TODO: 임베딩 서버 관련 exception 추가
-            throw new RuntimeException("임베딩 서버 호출 실패");
+            throw new CustomException(ApiStatus._EMBEDDING_SERVER_ERROR);
         }
     }
 
@@ -68,7 +69,7 @@ public class EmbeddingService {
                     .map(vec -> new Embedding(vec, 0))
                     .toList();
         } else {
-            throw new RuntimeException("임베딩 서버 호출 실패");
+            throw new CustomException(ApiStatus._EMBEDDING_SERVER_ERROR);
         }
     }
 }

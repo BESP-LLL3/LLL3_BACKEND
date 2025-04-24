@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class RecentIndexingService {
     private final RecentIndexingDocRepository recentIndexingDocRepository;
 
-    public void indexRecentCrtrYm(String crtrYm) throws Exception {
+    public void indexRecentCrtrYm(String crtrYm) {
         try {
             RecentIndexingDoc doc = RecentIndexingDoc.builder()
                     .id("recent_crtr_ym")
@@ -22,11 +22,8 @@ public class RecentIndexingService {
                     .build();
 
             recentIndexingDocRepository.save(doc);
-        } catch (RuntimeException e) {
-            throw new CustomException(ApiStatus._INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            log.error("최근 분기 인덱싱 중 예외 발생 - crtrYm : {}", crtrYm, e);
-            throw e;
+            throw new CustomException(ApiStatus._ES_CRTRYM_INDEXING_FAIL , "최근 분기 인덱싱 중 예외 발생 - crtrYm : " + crtrYm);
         }
     }
 }

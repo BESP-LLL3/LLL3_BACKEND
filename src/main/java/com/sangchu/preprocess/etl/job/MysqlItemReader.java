@@ -1,5 +1,7 @@
 package com.sangchu.preprocess.etl.job;
 
+import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import com.sangchu.preprocess.etl.entity.StoreRequestDto;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -21,7 +23,7 @@ public class MysqlItemReader {
 	public MultiResourceItemReader<StoreRequestDto> multiResourceItemReader() {
 		File folder = new File("src/main/resources/data");
 		if (!folder.exists() || !folder.isDirectory()) {
-			throw new IllegalArgumentException("CSV 파일 경로가 잘못되었습니다: " + folder.getAbsolutePath());
+			throw new CustomException(ApiStatus._CSV_FILEPATH_NOT_FOUND, "CSV 파일 경로가 잘못되었습니다 : " + folder.getAbsolutePath());
 		}
 
 		Resource[] resources = Arrays.stream(

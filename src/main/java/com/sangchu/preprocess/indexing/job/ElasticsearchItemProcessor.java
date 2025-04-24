@@ -1,5 +1,7 @@
 package com.sangchu.preprocess.indexing.job;
 
+import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import com.sangchu.preprocess.etl.entity.Store;
 import com.sangchu.elasticsearch.MorphologicalAnalysis;
 import com.sangchu.elasticsearch.entity.StoreSearchDoc;
@@ -12,6 +14,7 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Component;
 
+import javax.net.ssl.SSLEngineResult;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -52,8 +55,7 @@ public class ElasticsearchItemProcessor implements ItemProcessor<List<Store>, Li
             return result;
 
         } catch (Exception e) {
-            log.error("IndexQuery 생성 중 에러 발생", e);
-            throw e;
+            throw new CustomException(ApiStatus._ES_INDEX_QUERY_CREATE_FAIL);
         }
     }
 

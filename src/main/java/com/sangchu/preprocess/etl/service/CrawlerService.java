@@ -1,7 +1,6 @@
 package com.sangchu.preprocess.etl.service;
 
 import com.sangchu.global.util.UtilFile;
-import com.sangchu.preprocess.etl.repository.StoreRepository;
 import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.statuscode.ApiStatus;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -28,10 +27,7 @@ import java.util.zip.ZipInputStream;
 @Service
 @RequiredArgsConstructor
 public class CrawlerService {
-    private final StoreRepository storeRepository;
-
     private static final Map<String, String> columnMapping = Map.ofEntries(
-        //Map.entry("기준년월", "crtr_ym"),
         Map.entry("상가업소번호", "storeId"),
         Map.entry("상호명","storeNm"),
         Map.entry("지점명","branch_nm"),

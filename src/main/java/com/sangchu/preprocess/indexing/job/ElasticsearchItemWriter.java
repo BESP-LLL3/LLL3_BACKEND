@@ -1,6 +1,8 @@
 package com.sangchu.preprocess.indexing.job;
 
 import com.sangchu.elasticsearch.entity.StoreSearchDoc;
+import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.statuscode.ApiStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.Chunk;
@@ -59,8 +61,7 @@ public class ElasticsearchItemWriter implements ItemWriter<List<IndexQuery>> {
 
             elasticsearchOperations.bulkIndex(items, StoreSearchDoc.class);
         } catch (Exception e) {
-            log.error("Index 생성 중 에러 발생", e);
-            throw e;
+            throw new CustomException(ApiStatus._ES_BULK_INDEXING_FAIL);
         }
     }
 }
