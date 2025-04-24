@@ -16,7 +16,7 @@ public class StoreHelperService {
     public List<Store> getStoreWithoutFranchise(Long lastId, int size) {
         // lastId가 null이면 0으로 초기화
         Long cursor = lastId != null ? lastId : 0;
-        return storeRepository.findStoresAfterId("", Math.toIntExact(cursor), size);
+        return storeRepository.findRecentStoresAfterId("", Math.toIntExact(cursor), size);
     }
 }
 
