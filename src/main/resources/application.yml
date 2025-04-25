@@ -30,6 +30,10 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+kipris:
+  service-key: ${KIPRIS_SERVICE_KEY}
+  request-url: ${KIPRIS_REQUEST_URL}
+
 # =========================== LOCAL  ===========================
 ---
 spring.config.activate.on-profile: local
@@ -121,6 +125,8 @@ cors:
   allowed-headers: "*"
   allowed-credentials: false
   max-age: 3600
+
+
 
 # info:
 #   web:
