@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,9 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class ElasticsearchItemProcessor implements ItemProcessor<List<Store>, List<IndexQuery>> {
 
+	@Value("${spring.elasticsearch.index-name}")
+	private String docsName;
+	
 	private final EmbeddingService embeddingService;
 	private final MorphologicalAnalysis morphologicalAnalysis;
 
@@ -44,7 +48,7 @@ public class ElasticsearchItemProcessor implements ItemProcessor<List<Store>, Li
 				StoreSearchDoc doc = new StoreSearchDoc(store, embeddings.get(i), tokens);
 
 				return new IndexQueryBuilder().withId(doc.getStoreId())
-					.withIndex("store_search_doc-" + crtrYm)
+					.withIndex(docsName + "-" + crtrYm)
 					.withObject(doc)
 					.build();
 			}).toList();

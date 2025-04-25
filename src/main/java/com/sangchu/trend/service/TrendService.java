@@ -1,82 +1,82 @@
 package com.sangchu.trend.service;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.stream.StreamSupport;
 
-import com.sangchu.elasticsearch.entity.StoreSearchDoc;
 import com.sangchu.elasticsearch.service.EsHelperService;
 import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.statuscode.ApiStatus;
-import org.hibernate.query.NativeQuery;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.Query;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.sangchu.elasticsearch.CosineSimilarity;
 import com.sangchu.trend.entity.KeywordInfo;
-import com.sangchu.trend.entity.KeywordSuggestionResponseDto;
+import com.sangchu.trend.entity.TotalTrendResponseDto;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TrendService {
-	private final CosineSimilarity cosineSimilarity;
-	private final ElasticsearchOperations elasticsearchOperations;
-	private final EsHelperService esHelperService;
 
-	public KeywordSuggestionResponseDto getKeywordList(String keyword, int limit) {
+    @Value("${spring.elasticsearch.index-name}")
+    private String docsName;
 
-		Map<String, Integer> wordFrequency = cosineSimilarity.getWordFrequency(keyword);
+    private final CosineSimilarity cosineSimilarity;
+    private final EsHelperService esHelperService;
 
-		List<KeywordInfo> topKeywords = wordFrequency.entrySet().stream()
-			.sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-			.limit(limit)
-			.map(entry -> new KeywordInfo(entry.getKey(), entry.getValue()))
-			.toList();
-		return new KeywordSuggestionResponseDto(topKeywords);
-	}
+    public List<TotalTrendResponseDto> getTotalResults(String trendKeyword, int limit) {
+        List<String> indexNames = esHelperService.getStoreSearchDocIndices()
+                .orElseThrow(() -> new CustomException(ApiStatus._ES_INDEX_LIST_FETCH_FAIL));
+        indexNames.sort(Comparator.naturalOrder());
 
-	public List<Map<String, Object>> getQuarterlyWordFrequencyAcrossIndices(String keyword) throws IOException {
-        List<String> indexNames = esHelperService.getStoreSearchDocIndices(); // store_search_doc-YYYYMM 형식
+        List<KeywordInfo> trendKeywords = getRecentKeywordInfos(trendKeyword, limit);
 
-        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Map<String, Double>> indexToWordRelevanceMap = new HashMap<>();
 
         for (String indexName : indexNames) {
             try {
-                SearchHits<StoreSearchDoc> searchHits = elasticsearchOperations.search(
-                        Query.findAll(),
-                        StoreSearchDoc.class,
-                        IndexCoordinates.of(indexName)
-                );
-
-                long count = searchHits.stream()
-                        .map(SearchHit::getContent)
-                        .map(StoreSearchDoc::getTokens)
-                        .filter(Objects::nonNull)
-                        .flatMap(List::stream)
-                        .filter(token -> token.equals(keyword))
-                        .count();
-
-                String crtrYm = indexName.replace("store_search_doc-", "");
-
-                Map<String, Object> item = new HashMap<>();
-                item.put("crtrYm", crtrYm);
-                item.put("count", count);
-
-                result.add(item);
-
+                Map<String, Double> wordRelevance = cosineSimilarity.getWordRelevance(trendKeyword, indexName);
+                indexToWordRelevanceMap.put(indexName, wordRelevance);
             } catch (Exception e) {
                 throw new CustomException(ApiStatus._ES_KEYWORD_COUNT_FAIL,
-                        "인덱스 [" + indexName + "]에서 키워드 카운트 중 예외 발생");
+                        "인덱스 [" + indexName + "]의 WordFrequency 집계 실패");
             }
         }
+
+        List<TotalTrendResponseDto> result = new ArrayList<>();
+
+        for (KeywordInfo keywordInfo : trendKeywords) {
+            String keyword = keywordInfo.getKeyword();
+            double recentRelevance = keywordInfo.getRelevance();
+            Map<String, Double> quarterRelevance = new HashMap<>();
+
+            for (String indexName : indexNames) {
+                String crtrYm = indexName.replace(docsName + "-", "");
+                Double relevance = indexToWordRelevanceMap
+                        .getOrDefault(indexName, Collections.emptyMap())
+                        .getOrDefault(keyword, 0d);
+                quarterRelevance.put(crtrYm, relevance);
+            }
+
+            result.add(new TotalTrendResponseDto(keyword, recentRelevance, quarterRelevance));
+        }
+
         return result;
     }
-}
 
+    private List<KeywordInfo> getRecentKeywordInfos(String keyword, int limit) {
+
+        String recentStoreSearchDocIndexName = docsName + "-" + esHelperService.getRecentCrtrYm();
+        Map<String, Double> wordRelevance = cosineSimilarity.getWordRelevance(keyword, recentStoreSearchDocIndexName);
+
+        return wordRelevance.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(limit)
+                .map(entry -> new KeywordInfo(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+}

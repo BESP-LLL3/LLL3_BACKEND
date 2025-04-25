@@ -10,5 +10,5 @@ import java.util.Map;
 public class TotalTrendResponseDto {
     private String keyword;
     private Double recentCrtrYmRelevance;
-    private Map<String, Double> quarterCount;
+    private Map<String, Double> quarterRevelance;
 }

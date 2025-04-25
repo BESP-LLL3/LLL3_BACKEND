@@ -101,7 +101,7 @@ spring:
     uris: http://${MAIN_HOST}:${ES_EXTERNAL_PORT_1}
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: validate
     properties:

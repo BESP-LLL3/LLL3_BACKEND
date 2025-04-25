@@ -1,5 +1,6 @@
 package com.sangchu.elasticsearch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,25 +44,34 @@ public class CosineSimilarity {
 		return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 	}
 
-	public Map<String, Integer> getWordFrequency(String keyword) {
+	public Map<String, Double> getWordRelevance(String keyword, String indexName) {
 		Embedding keywordEmbedding = embeddingService.getEmbedding(keyword);
 
-		List<StoreSearchDoc> allDocs = esHelperService.findRecentCrtrYmDocs();
-		// 1. 유사도 필터링 (0.5 이상)
+		List<StoreSearchDoc> allDocs = esHelperService.findDocsByName(indexName);
+		// 1. 유사도 필터링 (0.2 이상)
+		List<Double> similarites = new ArrayList<>();
 		List<StoreSearchDoc> similarDocs = allDocs.stream()
-			.filter(doc -> cosineSimilarity(keywordEmbedding, doc.getVector()) >= 0.5)
-			.toList();
+				.filter(doc -> {
+					double temp = cosineSimilarity(keywordEmbedding, doc.getVector());
+					if (temp >= 0.2) {
+						similarites.add(temp);
+						return true;
+					}
+					return false;
+				})
+				.toList();
 
 		// 2. 형태소 분석 및 단어 빈도 집계
-		Map<String, Integer> wordFrequency = new HashMap<>();
+		Map<String, Double> wordRelevance = new HashMap<>();
+		for (int i = 0; i < similarDocs.size(); i++) {
+			StoreSearchDoc doc = similarDocs.get(i);
+			double similarity = similarites.get(i);
 
-		for (StoreSearchDoc doc : similarDocs) {
-			 List<String> tokens = doc.getTokens();
+			List<String> tokens = doc.getTokens();
 			for (String token : tokens) {
-				wordFrequency.put(token, wordFrequency.getOrDefault(token, 0) + 1);
+				wordRelevance.put(token, wordRelevance.getOrDefault(token, 0d) + similarity);
 			}
 		}
-
-		return wordFrequency;
+		return wordRelevance;
 	}
 }
