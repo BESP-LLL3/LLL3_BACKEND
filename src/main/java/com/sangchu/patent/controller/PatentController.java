@@ -23,7 +23,7 @@ public class PatentController {
     private final PatentService patentService;
 
     @GetMapping("/patent")
-    public ResponseEntity<BaseResponse<Boolean>> testPatent(@Param("storeNm") String storeNm) throws URISyntaxException, IOException, ParserConfigurationException, SAXException {
+    public ResponseEntity<BaseResponse<Boolean>> checkPatent(@Param("storeNm") String storeNm) throws URISyntaxException, IOException, ParserConfigurationException, SAXException {
         Boolean response = patentService.checkDuplicated(storeNm);
         return ResponseMapper.successOf(ApiStatus._OK, response, PatentController.class);
     }
