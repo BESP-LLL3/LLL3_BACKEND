@@ -1,6 +1,6 @@
 package com.sangchu.preprocess.scheduler;
 
-import com.sangchu.elasticsearch.service.RecentIndexingService;
+import com.sangchu.elasticsearch.service.EsHelperService;
 import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.UtilFile;
 import com.sangchu.global.util.statuscode.ApiStatus;
@@ -13,7 +13,6 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.nio.file.Path;
 
 @Component
@@ -23,7 +22,7 @@ public class PreProcessScheduler {
     private final Job mysqlJob;
     private final Job elasticsearchJob;
     private final CrawlerService crawlerService;
-    private final RecentIndexingService recentIndexingService;
+    private final EsHelperService esHelperService;
 
     // 2,5,8,11월 5일 0시
     @Scheduled(cron = "0 0 0 5 2,5,8,11 *")
@@ -39,7 +38,7 @@ public class PreProcessScheduler {
             .orElseThrow(() -> new CustomException(ApiStatus._FILE_READ_FAILED));
 
         // crtrYm 엘라스틱 서치에 저장
-        recentIndexingService.indexRecentCrtrYm(crtrYm);
+        esHelperService.indexRecentCrtrYm(crtrYm);
 
         // 파일 -> mysql, mysql -> 엘라스틱서치 배치 작업 진행
         runBatchJob();
