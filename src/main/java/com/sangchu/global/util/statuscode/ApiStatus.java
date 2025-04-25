@@ -38,7 +38,8 @@ public enum ApiStatus {
 	_ES_INDEX_QUERY_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "IndexQuery 생성 중 에러 발생"),
 	_RECENT_CRTRYM_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,500 ,"최근 분기 정보가 없습니다."),
     _ES_INDEX_LIST_FETCH_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "인덱스 목록 조회 중 예외 발생"),
-	_ES_KEYWORD_COUNT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "키워드 카운트 중 예외 발생");
+	_ES_KEYWORD_COUNT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "키워드 카운트 중 예외 발생"),
+	_PATENT_CHECK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "중복 검사 중 예외 발생");
 
 	private final HttpStatus httpStatus;
 	private final int code;
