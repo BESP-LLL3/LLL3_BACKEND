@@ -17,7 +17,6 @@ spring:
       port: ${REDIS_EXTERNAL_PORT}
 
   elasticsearch:
-    limit: ${ES_LIMIT}
     index-name: ${INDEX_NAME}
 
   ai:
@@ -95,24 +94,24 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://${MAIN_HOST}:${MYSQL_EXTERNAL_PORT}/${MYSQL_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://${MAIN_HOST}:${MYSQL_EXTERNAL_PORT}/${MYSQL_DB_NAME}?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=UTF-8
 
   data:
     redis:
       host: ${MAIN_HOST}
 
   elasticsearch:
-    uris: http://${MAIN_HOST}:${ES_EXTERNAL_PORT_1}
+    uris: http://${MAIN_HOST}:${ES_EXTERNAL_PORT_1}/
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: validate
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: false
-        use_sql_comments: false
+#    properties:
+#      hibernate:
+#        show_sql: true
+#        format_sql: false
+#        use_sql_comments: false
 
 embed:
   huggingface:

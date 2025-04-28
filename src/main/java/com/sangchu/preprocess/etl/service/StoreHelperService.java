@@ -14,11 +14,17 @@ public class StoreHelperService {
     private final StoreRepository storeRepository;
     private final EsHelperService esHelperService;
 
-    public List<Store> getStoreWithoutFranchise(Long lastId, int size) {
-        Long cursor = lastId != null ? lastId : 0;
+    public List<Store> getStoreByIdRange(Long startId, Long endId, int size) {
         String crtrYm = esHelperService.getRecentCrtrYm();
+        return storeRepository.findStoresInRange(startId, endId, size, crtrYm);
+    }
 
-        return storeRepository.findRecentStoresAfterId("", Math.toIntExact(cursor), size, crtrYm);
+    public long getMaxIdByCrtrYm(String crtrYm) {
+        return storeRepository.findMaxIdByCrtrYm(crtrYm);
+    }
+
+    public long getMinIdByCrtrYm(String crtrYm) {
+        return storeRepository.findMinIdByCrtrYm(crtrYm);
     }
 }
 

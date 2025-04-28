@@ -1,23 +1,22 @@
 package com.sangchu.preprocess.indexing.config;
 
 import com.sangchu.preprocess.etl.entity.Store;
-import com.sangchu.preprocess.indexing.job.ElasticsearchItemProcessor;
-import com.sangchu.preprocess.indexing.job.ElasticsearchItemReader;
-import com.sangchu.preprocess.indexing.job.ElasticsearchItemWriter;
+import com.sangchu.preprocess.etl.service.StoreHelperService;
+import com.sangchu.preprocess.indexing.job.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,9 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ElasticsearchBatchConfig {
 
-    private final ElasticsearchItemReader elasticsearchItemReader;
     private final ElasticsearchItemProcessor elasticsearchItemProcessor;
     private final ElasticsearchItemWriter elasticsearchItemWriter;
+    private final StoreHelperService storeHelperService;
+    private final IdRangePartitioner partitioner;
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -35,23 +35,40 @@ public class ElasticsearchBatchConfig {
     @Bean
     public Job elasticsearchJob() {
         return new JobBuilder("elasticsearchJob", jobRepository)
-                .start(elasticsearchStep())
+                .start(masterStep())
                 .build();
     }
 
     @Bean
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Step elasticsearchStep() {
-        return new StepBuilder("elasticsearchStep", jobRepository)
+    public Step masterStep() {
+        return new StepBuilder("masterStep", jobRepository)
+                .partitioner("workerStep", partitioner)
+                .step(workerStep())
+                .gridSize(4)
+                .taskExecutor(elasticsearchTaskExecutor())
+                .build();
+    }
+
+    @Bean
+    public Step workerStep() {
+        return new StepBuilder("workerStep", jobRepository)
                 .<List<Store>, List<IndexQuery>>chunk(1, transactionManager)
-                .reader(elasticsearchItemReader)
+                .reader(elasticsearchItemReader(null, null))
                 .processor(elasticsearchItemProcessor)
                 .writer(elasticsearchItemWriter)
                 .faultTolerant()
                 .skip(Exception.class)
                 .skipLimit(100)
-                .taskExecutor(elasticsearchTaskExecutor())
                 .build();
+    }
+
+    @Bean
+    @StepScope
+    public ElasticsearchItemReader elasticsearchItemReader(
+            @Value("#{stepExecutionContext['startId']}") Long startId,
+            @Value("#{stepExecutionContext['endId']}") Long endId) {
+
+        return new ElasticsearchItemReader(storeHelperService, startId, endId);
     }
 
     @Bean
