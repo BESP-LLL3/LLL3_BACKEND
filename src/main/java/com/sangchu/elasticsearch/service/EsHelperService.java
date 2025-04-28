@@ -57,9 +57,13 @@ public class EsHelperService {
     }
 
     public String getRecentCrtrYm() {
-        return recentIndexingDocRepository.findById("recent_crtr_ym")
+        String recentCrtrYm = recentIndexingDocRepository.findById("recent_crtr_ym")
                 .orElseThrow(() -> new CustomException(ApiStatus._RECENT_CRTRYM_NOT_FOUND))
                 .getCrtrYm();
+        if (recentCrtrYm == null) {
+            throw new CustomException(ApiStatus._RECENT_CRTRYM_NOT_FOUND);
+        }
+        return recentCrtrYm;
     }
 
     public Optional<List<String>> getStoreSearchDocIndices(){
