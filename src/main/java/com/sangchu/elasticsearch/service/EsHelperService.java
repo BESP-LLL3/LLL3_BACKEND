@@ -1,23 +1,20 @@
 package com.sangchu.elasticsearch.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.cat.IndicesResponse;
 import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.sangchu.elasticsearch.entity.RecentIndexingDoc;
 import com.sangchu.elasticsearch.entity.StoreSearchDoc;
 import com.sangchu.elasticsearch.repository.RecentIndexingDocRepository;
-import com.sangchu.embedding.service.EmbeddingService;
 import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.statuscode.ApiStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.embedding.Embedding;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.stereotype.Service;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
@@ -26,9 +23,7 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,5 +86,24 @@ public class EsHelperService {
         );
 
         return searchHits.get().map(SearchHit::getContent).toList();
+    }
+
+    public SearchResponse<StoreSearchDoc> searchKnn(String indexName, float[] queryVector, int k, int numCandidates) throws IOException {
+        List<Float> queryVectorList = new ArrayList<>();
+        for (float vector : queryVector) {
+            queryVectorList.add(vector);
+        }
+        SearchRequest request = SearchRequest.of(s -> s
+                .index(indexName)
+                .knn(knn -> knn
+                        .field("vector")  // dense_vector 필드명
+                        .queryVector(queryVectorList)  // float[] 형식
+                        .k(k)
+                        .numCandidates(numCandidates)
+                        .similarity(0.3F)
+                )
+        );
+
+        return elasticsearchClient.search(request, StoreSearchDoc.class);
     }
 }
