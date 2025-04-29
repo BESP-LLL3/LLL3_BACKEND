@@ -17,7 +17,9 @@ public class CsvPartitioner implements Partitioner {
     @Override
     public Map<String, ExecutionContext> partition(int gridSize) {
         File folder = new File("src/main/resources/data");
-        File[] files = folder.listFiles((dir, name) -> name.endsWith(".csv"));
+        File[] files = folder.listFiles((dir, name) -> 
+                name.endsWith(".csv") && name.contains("서울")
+        );
 
         Map<String, ExecutionContext> partitions = new HashMap<>();
         for (int i = 0; i < files.length; i++) {
