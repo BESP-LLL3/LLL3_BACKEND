@@ -46,7 +46,7 @@ services:
     image: mysql:latest
     #    restart: always
     volumes:
-      - ./conf/my.conf:/etc/mysql/conf.d/my.conf
+      - ./conf/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./sql:/docker-entrypoint-initdb.d
       - ./db/mysql/data:/var/lib/mysql
     ports:
