@@ -1,7 +1,7 @@
 package com.sangchu.preprocess.etl.service;
 
-import com.sangchu.global.util.UtilFile;
 import com.sangchu.global.exception.custom.CustomException;
+import com.sangchu.global.util.UtilFile;
 import com.sangchu.global.util.statuscode.ApiStatus;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.RequiredArgsConstructor;
@@ -16,59 +16,24 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipFile;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CrawlerService {
-    private static final Map<String, String> columnMapping = Map.ofEntries(
-        Map.entry("상가업소번호", "storeId"),
-        Map.entry("상호명","storeNm"),
-        Map.entry("지점명","branch_nm"),
-        Map.entry("상권업종대분류코드", "largeCatCd"),
-        Map.entry("상권업종대분류명", "largeCatNm"),
-        Map.entry("상권업종중분류코드", "midCatCd"),
-        Map.entry("상권업종중분류명", "midCatNm"),
-        Map.entry("상권업종소분류코드", "smallCatCd"),
-        Map.entry("상권업종소분류명", "smallCatNm"),
-        Map.entry("표준산업분류코드", "ksicCd"),
-        Map.entry("표준산업분류명", "ksicNm"),
-        Map.entry("시도코드", "sidoCd"),
-        Map.entry("시도명", "sidoNm"),
-        Map.entry("시군구코드", "sggCd"),
-        Map.entry("시군구명", "sggNm"),
-        Map.entry("행정동코드", "hDongCd"),
-        Map.entry("행정동명", "hDongNm"),
-        Map.entry("법정동코드", "bDongCd"),
-        Map.entry("법정동명", "bDongNm"),
-        Map.entry("지번코드", "lotNoCd"),
-        Map.entry("대지구분코드", "landDivCd"),
-        Map.entry("대지구분명", "landDivNm"),
-        Map.entry("지번본번지", "lotMainNo"),
-        Map.entry("지번부번지", "lotSubNo"),
-        Map.entry("지번주소", "lotAddr"),
-        Map.entry("도로명코드", "roadCd"),
-        Map.entry("도로명", "roadNm"),
-        Map.entry("건물본번", "bldgMainNo"),
-        Map.entry("건물부번", "bldgSubNo"),
-        Map.entry("건물관리번호", "bldgMgmtNo"),
-        Map.entry("건물명", "bldgNm"),
-        Map.entry("도로명주소", "roadAddr"),
-        Map.entry("구우편번호", "oldZipCd"),
-        Map.entry("신우편번호", "newZipCd"),
-        Map.entry("건물동", "block"),
-        Map.entry("건물층", "floor"),
-        Map.entry("호", "room"),
-        Map.entry("경도", "coordX"),
-        Map.entry("위도", "coordY")
-    );
-
     // csv 파일을 가져오는 메서드
     public void crwalingCsvData() {
         crwaling();
@@ -118,7 +83,6 @@ public class CrawlerService {
         }
     }
 
-
     private void waitForDownloadToComplete(int timeoutSeconds) throws InterruptedException, IOException {
         // 1. 경로 설정
         Path resourcePath = Paths.get("src/main/resources").toAbsolutePath();
@@ -146,35 +110,50 @@ public class CrawlerService {
         Path resourcePath = Paths.get("src/main/resources").toAbsolutePath();
         Path downloadDir = resourcePath.resolve("data");
 
+        List<Charset> charsets = Arrays.asList(
+            Charset.forName("MS949"),
+            Charset.forName("CP949"),
+            StandardCharsets.UTF_8,
+            StandardCharsets.ISO_8859_1
+        );
+
         try {
             Files.walk(downloadDir)
                 .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(".zip"))
                 .forEach(zipFilePath -> {
-                    try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath.toFile()))) {
-                        ZipEntry zipEntry;
-                        while ((zipEntry = zis.getNextEntry()) != null) {
+                    try {
+                        // 압축 파일 내 CSV 파일명 캐릭터셋 검사
+                        Charset extractedCharset = null;
+                        for (Charset charset : charsets) {
+                            try (ZipFile tempZipFile = new ZipFile(zipFilePath.toFile(), charset)) {
+                                extractedCharset = charset;
+                                break;
+                            } catch (IOException e) { /* 실패하면 무시하고 다음 캐릭터셋으로 넘어감 */ }
+                        }
+
+                        ZipFile zipFile = new ZipFile(zipFilePath.toFile(), extractedCharset);
+
+                        zipFile.entries().asIterator().forEachRemaining(zipEntry -> {
                             Path outputPath = downloadDir.resolve(zipEntry.getName());
 
-                            // 디렉토리인 경우 디렉토리 생성
-                            if (zipEntry.isDirectory()) {
-                                Files.createDirectories(outputPath);
-                            } else {
-                                // 부모 디렉토리 없을 경우 생성
-                                if (outputPath.getParent() != null) {
-                                    Files.createDirectories(outputPath.getParent());
-                                }
+                            try {
+                                if (zipEntry.isDirectory()) {
+                                    Files.createDirectories(outputPath);
+                                } else {
+                                    // 부모 디렉토리 없을 경우 생성
+                                    if (outputPath.getParent() != null) {
+                                        Files.createDirectories(outputPath.getParent());
+                                    }
 
-                                // 파일 복사
-                                try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(outputPath))) {
-                                    byte[] buffer = new byte[1024];
-                                    int len;
-                                    while ((len = zis.read(buffer)) > 0) {
-                                        bos.write(buffer, 0, len);
+                                    // 파일 복사
+                                    try (InputStream zipStream = zipFile.getInputStream(zipEntry)) {
+                                        Files.copy(zipStream, outputPath);
                                     }
                                 }
+                            } catch (IOException e) {
+                                log.error("파일 복사 실패: {}", zipEntry.getName(), e);
                             }
-                            zis.closeEntry();
-                        }
+                        });
 
                         log.info("압축 해제 완료: {}", zipFilePath.getFileName());
                     } catch (Exception e) {
@@ -187,5 +166,4 @@ public class CrawlerService {
             throw new CustomException(ApiStatus._FILE_UNZIP_FAILED);
         }
     }
-
 }
