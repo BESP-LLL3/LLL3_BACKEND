@@ -22,6 +22,11 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
+      base-url: https://api.openai.com/
+      chat:
+        options:
+          model: gpt-4-turbo
+          temperature: 1
 
 springdoc:
   swagger-ui:

@@ -37,7 +37,7 @@ public class PatentService {
 
     public Boolean checkDuplicated(String storeNm) throws URISyntaxException, IOException, ParserConfigurationException, SAXException {
         try {
-            String url = requestUrl + "?word=" + URLEncoder.encode(storeNm, StandardCharsets.UTF_8.toString()) + "&ServiceKey=" + serviceKey;
+            String url = requestUrl + "?word=" + URLEncoder.encode(storeNm, StandardCharsets.UTF_8) + "&ServiceKey=" + serviceKey;
             ResponseEntity<String> response = restTemplate.getForEntity(new URI(url), String.class);
 
             if (response.getStatusCode() != HttpStatus.OK) return false;
