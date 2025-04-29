@@ -15,7 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.Embedding;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchScrollHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,9 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -82,14 +88,37 @@ public class EsHelperService {
     }
 
     public List<StoreSearchDoc> findDocsByName(String indexName) {
-        Query query = new CriteriaQuery(new Criteria());
+        List<StoreSearchDoc> results = new ArrayList<>();
+        Object[] searchAfter = null; // search_after는 Object[] 타입이어야 함
 
-        SearchHits<StoreSearchDoc> searchHits = elasticsearchOperations.search(
+        do {
+            Query query = new CriteriaQuery(new Criteria());
+            query.setPageable(PageRequest.of(0, 8000)); // page=0 고정, size만 8000
+            query.addSort(Sort.by(Sort.Order.asc("_id"))); // 정렬 기준 필수
+
+            if (searchAfter != null) {
+                query.setSearchAfter(Arrays.asList(searchAfter));
+            }
+
+            SearchHits<StoreSearchDoc> searchHits = elasticsearchOperations.search(
                 query,
                 StoreSearchDoc.class,
                 IndexCoordinates.of(indexName)
-        );
+            );
 
-        return searchHits.get().map(SearchHit::getContent).toList();
+            searchHits.getSearchHits().forEach(hit -> results.add(hit.getContent()));
+
+            if (!searchHits.getSearchHits().isEmpty()) {
+                searchAfter = searchHits.getSearchHits()
+                    .getLast()
+                    .getSortValues()
+                    .toArray(); // SortValues를 그대로 Object[]로 변환
+            } else {
+                searchAfter = null;
+            }
+        } while (searchAfter != null);
+
+        return results;
     }
+
 }

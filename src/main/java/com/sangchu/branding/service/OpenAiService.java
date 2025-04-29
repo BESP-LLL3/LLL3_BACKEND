@@ -43,10 +43,11 @@ public class OpenAiService {
     public CompletableFuture<List<BrandNameResponseDto>> getBrandName(BrandNameRequestDto brandNameRequestDto) {
         String userMessage = buildUserPrompt(brandNameRequestDto);
         String systemMessage = "당신은 창의적인 브랜드 상호명 전문가입니다. " +
-                "검색어와 관련된 이름을 추천하되, 반드시 포함할 필요는 없습니다. " +
-                "추가 키워드와 트렌드 키워드를 활용하세요. " +
-                "자연스럽고 매력적인 한글 상호명을" + brandNameRequestDto.getLimit() + "개 정도 제안해 주세요. " +
-                "번호나 설명 없이 상호명과 그 상호명에 대한 소개문을 상호명-소개문의 형식을 줄바꿈으로 구분해서 출력해 주세요.";
+            "검색어와 관련된 이름을 추천하되, 반드시 포함할 필요는 없습니다. " +
+            "추가 키워드와 트렌드 키워드를 활용하세요. " +
+            "자연스럽고 매력적인 한글 상호명을" + brandNameRequestDto.getLimit() + "개 정도 제안해 주세요. " +
+            "번호나 설명 없이 상호명과 그 상호명에 대한 간결하고 매력적인 소개문을 10자 이하로" +
+            "상호명-소개문의 형식을 줄바꿈으로 구분해서 출력해 주세요.";
 
         // 요청 메시지 작성
         ChatRequestDto request = ChatRequestDto.builder()
