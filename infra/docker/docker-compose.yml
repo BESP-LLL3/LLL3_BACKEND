@@ -4,7 +4,7 @@ services:
   elasticsearch:
     build:
       context: .
-      dockerfile: Dockerfile_elasticsearch
+      dockerfile: dockerfile_elasticsearch
     container_name: elasticsearch
     environment:
       - discovery.type=${NODE_TYPE}
@@ -25,7 +25,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-  
+    env_file:
+      - .env
+
   kibana:
     image: kibana:8.12.2
     container_name: kibana
@@ -37,9 +39,11 @@ services:
       - LLL3_network
     environment:
       ELASTICSEARCH_HOSTS: "http://${ES_HOST}:${ES_EXTERNAL_PORT_1}"
+    env_file:
+      - .env
 
   mysql:
-    image: mysql:8.0
+    image: mysql:latest
     #    restart: always
     volumes:
       - ./conf/my.cnf:/etc/mysql/conf.d/my.cnf
@@ -53,6 +57,8 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
+    env_file:
+      - .env
 
   redis:
     image: redis:alpine
@@ -61,6 +67,57 @@ services:
       - "${REDIS_INTERNAL_PORT}:${REDIS_EXTERNAL_PORT}"
     networks:
       - LLL3_network
+    env_file:
+      - .env
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile_backend
+    container_name: SANGCHU
+    env_file:
+      - .env
+    ports:
+      - "8080:8081"
+    depends_on:
+      - mysql
+    networks:
+      - LLL3_network
+    restart: always
+
+  frontend:
+    build:
+      context: ../../../LLL3_FRONTEND
+      dockerfile: dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    networks:
+      - LLL3_network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx_config/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - LLL3_network
+    restart: always
+    env_file:
+      - .env
+
+  embedding:
+    build:
+      context: .
+      dockerfile: dockerfile_embedding
+    container_name: embedding
+    ports:
+      - "5050:5050"
+    networks:
+      - LLL3_network
+    restart: always
 
 networks:
   LLL3_network:

@@ -17,6 +17,7 @@ spring:
       port: ${REDIS_EXTERNAL_PORT}
 
   elasticsearch:
+    limit: ${ES_LIMIT}
     index-name: ${INDEX_NAME}
 
   ai:
@@ -112,11 +113,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: validate
-#    properties:
-#      hibernate:
-#        show_sql: true
-#        format_sql: false
-#        use_sql_comments: false
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: false
+        use_sql_comments: false
 
 embed:
   huggingface:

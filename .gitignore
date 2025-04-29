@@ -11,7 +11,7 @@ build/
 .factorypath
 .project
 .settings
-.env
+infra/docker/.env
 .springBeans
 .sts4-cache
 bin/
@@ -27,8 +27,8 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-db/
-elasticsearch/data/
+infra/db/
+infra/elasticsearch/data/
 src/main/resources/data/
 
 ### NetBeans ###
@@ -42,4 +42,4 @@ src/main/resources/data/
 .vscode/
 
 ### ElasticSearch ###
-elasticsearch/data
+infra/elasticsearch/data
