@@ -46,7 +46,7 @@ public class OpenAiService {
                 "검색어와 관련된 이름을 추천하되, 반드시 포함할 필요는 없습니다. " +
                 "추가 키워드와 트렌드 키워드를 활용하세요. " +
                 "자연스럽고 매력적인 한글 상호명을" + brandNameRequestDto.getLimit() + "개 정도 제안해 주세요. " +
-                "번호나 설명 없이 상호명과 그 상호명에 대한 소개문을 상호명 - 소개문의 형식을 줄바꿈으로 구분해서 출력해 주세요.";
+                "번호나 설명 없이 상호명과 그 상호명에 대한 소개문을 상호명-소개문의 형식을 줄바꿈으로 구분해서 출력해 주세요.";
 
         // 요청 메시지 작성
         ChatRequestDto request = ChatRequestDto.builder()
@@ -80,7 +80,10 @@ public class OpenAiService {
             List<String> responseList = Arrays.asList(chatResponse.split("\n"));
             List<BrandNameResponseDto> responseDto = new ArrayList<>();
             for (String responseItem : responseList) {
-                String[] responseItems = responseItem.split("-");
+                String[] responseItems = responseItem.split("-", 2); // 하이픈이 2개 이상 있어도 앞 2개만 분리
+                if (responseItems.length < 2) {
+                    continue; // 잘못된 포맷 무시
+                }
                 responseDto.add(BrandNameResponseDto.builder()
                     .brandName(responseItems[0].trim())
                     .comment(responseItems[1].trim())
