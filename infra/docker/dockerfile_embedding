@@ -1,0 +1,14 @@
+# Dockerfile_embedding
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 필요한 파일 복사
+COPY embedding_server/huggingFaceEmbeddingServer.py .
+
+# 필요한 패키지 설치
+RUN pip install --no-cache-dir flask numpy requests flask-cors flask-restful flask-socketio sentence_transformers
+
+# 컨테이너 시작 시 python 서버 실행
+CMD ["python3", "huggingFaceEmbeddingServer.py"]
