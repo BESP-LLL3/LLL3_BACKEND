@@ -41,8 +41,8 @@ public enum ApiStatus {
 	_ES_KEYWORD_COUNT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "키워드 카운트 중 예외 발생"),
 	_PATENT_CHECK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "중복 검사 중 예외 발생"),
 	_OPENAI_RESPONSE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "OpenAI 응답 없음"),
-	_BRANDING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "상호명 추천 중 예외 발생");
-
+	_BRANDING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "상호명 추천 중 예외 발생"),
+	_ES_READ_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "elasticSearch 인덱스 읽어오는 도중 예외 발생");
 
 	private final HttpStatus httpStatus;
 	private final int code;

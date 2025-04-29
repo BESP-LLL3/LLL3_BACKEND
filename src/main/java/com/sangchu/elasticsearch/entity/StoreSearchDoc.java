@@ -6,6 +6,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sangchu.preprocess.etl.entity.Store;
 
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(indexName = "store_search_doc-*")
+@JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
 public class StoreSearchDoc {
 
