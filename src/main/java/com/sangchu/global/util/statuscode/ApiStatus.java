@@ -29,7 +29,7 @@ public enum ApiStatus {
 	_FILE_UNZIP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 압축 해제에 실패했습니다."),
 	_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"파일 로딩에 실패했습니다."),
 	_CSV_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 500,"csv파일 로딩에 실패했습니다."),
-	_CSV_FILEPATH_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, 500, "CSV 파일 경로가 잘못되었습니다"),
+	_CSV_FILEPATH_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, 500, "CSV 파일 경로가 잘못되었습니다."),
 	_EMBEDDING_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 500, "임베딩 서버 호출에 실패했습니다."),
 	_VECTOR_LENGTH_DIFFERENT(HttpStatus.BAD_REQUEST, 400, "벡터 길이가 일치하지 않습니다."),
 	_READ_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "DB 읽기에 실패하였습니다."),
