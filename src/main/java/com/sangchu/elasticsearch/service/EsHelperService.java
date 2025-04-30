@@ -101,7 +101,13 @@ public class EsHelperService {
                         .k(k)
                         .numCandidates(numCandidates)
                         .similarity(0.3F)
+                        .filter(q -> q.bool(b -> b
+                                .must(m -> m.matchAll(mq -> mq))
+                                .mustNot(mn -> mn.wildcard(wc -> wc.field("storeNm.keyword").value("점")))
+                                .mustNot(mn -> mn.wildcard(wc -> wc.field("storeNm.keyword").value("번지")))
+                        ))
                 )
+                .source(src -> src.filter(f -> f.includes("tokens")))
         );
 
         return elasticsearchClient.search(request, StoreSearchDoc.class);

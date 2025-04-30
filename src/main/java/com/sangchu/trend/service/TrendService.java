@@ -1,8 +1,12 @@
 package com.sangchu.trend.service;
 
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.util.Pair;
 import com.sangchu.elasticsearch.entity.StoreSearchDoc;
 import com.sangchu.elasticsearch.service.EsHelperService;
 import com.sangchu.embedding.service.EmbeddingService;
@@ -35,19 +39,38 @@ public class TrendService {
                 .orElseThrow(() -> new CustomException(ApiStatus._ES_INDEX_LIST_FETCH_FAIL));
         indexNames.sort(Comparator.naturalOrder());
         String recentStoreSearchDocIndexName = docsName + "-" + esHelperService.getRecentCrtrYm();
+        Embedding keywordEmbedding = embeddingService.getEmbedding(trendKeyword);
 
-        List<KeywordInfo> trendKeywords = getKeywordInfos(trendKeyword, limit, recentStoreSearchDocIndexName);
+        List<KeywordInfo> trendKeywords = getKeywordInfos(30, recentStoreSearchDocIndexName, 120, keywordEmbedding).stream()
+                .filter(k -> k.getKeyword().length() > 1) // 글자 수 1인 키워드 제거
+                .sorted((a, b) -> Double.compare(b.getRelevance(), a.getRelevance())) // 내림차순 정렬
+                .toList();
+
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+
+        List<Callable<Map.Entry<String, List<KeywordInfo>>>> tasks = indexNames.stream()
+                .map(indexName -> (Callable<Map.Entry<String, List<KeywordInfo>>>) () -> {
+                    try {
+                        log.info("Getting trend results for {}", indexName);
+                        List<KeywordInfo> wordRelevance = getKeywordInfos(30, indexName, 120, keywordEmbedding);
+                        return Map.entry(indexName, wordRelevance);
+                    } catch (Exception e) {
+                        log.warn("index 실패: {}", indexName);
+                        return Map.entry(indexName, Collections.emptyList());
+                    }
+                }).toList();
 
         Map<String, List<KeywordInfo>> indexToWordRelevanceMap = new HashMap<>();
-
-        for (String indexName : indexNames) {
-            try {
-                List<KeywordInfo> wordRelevance = getKeywordInfos(trendKeyword, 30, indexName);
-                indexToWordRelevanceMap.put(indexName, wordRelevance);
-            } catch (Exception e) {
-                throw new CustomException(ApiStatus._ES_KEYWORD_COUNT_FAIL,
-                        "인덱스 [" + indexName + "]의 WordFrequency 집계 실패");
+        try {
+            List<Future<Map.Entry<String, List<KeywordInfo>>>> futures = executor.invokeAll(tasks);
+            for (Future<Map.Entry<String, List<KeywordInfo>>> future : futures) {
+                Map.Entry<String, List<KeywordInfo>> entry = future.get();
+                indexToWordRelevanceMap.put(entry.getKey(), entry.getValue());
             }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new CustomException(ApiStatus._ES_KEYWORD_COUNT_FAIL, "인덱스 relevance 수집 중 오류 발생");
+        } finally {
+            executor.shutdown(); // 자원 반납
         }
 
         List<TotalTrendResponseDto> result = new ArrayList<>();
@@ -64,45 +87,47 @@ public class TrendService {
 
                 double relevance = keywordInfos.stream()
                         .filter(info -> info.getKeyword().equals(keyword))
-                        .map(KeywordInfo::getRelevance)
-                        .findFirst()
-                        .orElse(0.0);
+                        .mapToDouble(KeywordInfo::getRelevance)
+                        .sum();
 
-                quarterRelevance.put(crtrYm, relevance);
+                quarterRelevance.put(crtrYm, quarterRelevance.getOrDefault(crtrYm, 0.0) + relevance);
             }
 
-            result.add(new TotalTrendResponseDto(keyword, recentRelevance, quarterRelevance));
+            Map<String, Double> sortedByKey = new TreeMap<>(quarterRelevance);
+
+            result.add(new TotalTrendResponseDto(keyword, recentRelevance, sortedByKey));
         }
 
         return result;
     }
 
-    public List<KeywordInfo> getKeywordInfos(String keyword, int limit, String indexName) {
-        Embedding keywordEmbedding = embeddingService.getEmbedding(keyword);
-
+    public List<KeywordInfo> getKeywordInfos(int k, String indexName, int numCandidates, Embedding keywordEmbedding) {
         try {
-            SearchResponse<StoreSearchDoc> response = esHelperService.searchKnn(indexName, keywordEmbedding.getOutput(), limit, 100);
+            SearchResponse<StoreSearchDoc> response = esHelperService.searchKnn(indexName, keywordEmbedding.getOutput(), k, numCandidates);
 
             Map<String, Double> wordRelevance = new HashMap<>();
 
             for (Hit<StoreSearchDoc> hit : response.hits().hits()) {
-                StoreSearchDoc source = hit.source();
                 Double score = hit.score();
+                if (score == null || score < 0.1) {
+                    continue;
+                }
+                StoreSearchDoc source = hit.source();
                 List<String> tokens = source.getTokens();
+                if (tokens == null || tokens.isEmpty()) {
+                    continue;
+                }
 
                 for (String token : tokens) {
                     wordRelevance.put(token, wordRelevance.getOrDefault(token, 0d) + score);
                 }
             }
 
-
             return wordRelevance.entrySet().stream()
                     .map(entry -> new KeywordInfo(entry.getKey(), entry.getValue()))
-                    .sorted((a, b) -> Double.compare(b.getRelevance(), a.getRelevance())) // 내림차순 정렬
-                    .limit(limit)
                     .toList();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error during getKeywordInfos for index [{}]: {}", indexName, e.getMessage(), e);
             throw new CustomException(ApiStatus._BAD_REQUEST);
         }
     }
