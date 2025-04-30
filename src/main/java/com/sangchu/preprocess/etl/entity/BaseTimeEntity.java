@@ -1,5 +1,6 @@
 package com.sangchu.preprocess.etl.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
@@ -14,5 +15,6 @@ import java.time.LocalDateTime;
 public abstract class BaseTimeEntity {
     
     @CreatedDate
+    @Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 }
