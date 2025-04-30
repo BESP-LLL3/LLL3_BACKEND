@@ -43,3 +43,8 @@ src/main/resources/data/
 
 ### ElasticSearch ###
 infra/elasticsearch/data
+
+### local ###
+.env
+db
+elasticsearch
