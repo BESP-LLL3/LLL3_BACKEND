@@ -14,7 +14,7 @@ public class CustomException extends RuntimeException {
 	}
 
 	public CustomException(ApiStatus status, String message) {
-		super(message);
+		super(status.getMessage() + ":" + message);
 		this.status = status;
 	}
 
