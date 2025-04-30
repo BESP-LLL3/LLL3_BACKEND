@@ -1,5 +1,7 @@
 package com.sangchu.elasticsearch.service;
 
+import static com.sangchu.elasticsearch.CosineSimilarity.*;
+
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -42,9 +44,11 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,51 +101,6 @@ public class EsHelperService {
         }
     }
 
-    // public List<StoreSearchDoc> findDocsByName(String indexName) {
-    //     List<StoreSearchDoc> results = new ArrayList<>();
-    //     List<FieldValue> searchAfter = null; // search_after는 List<FieldValue> 타입이어야 함
-    //
-    //     while (true) {
-    //         // SearchRequest 빌드
-    //         SearchRequest.Builder requestBuilder = new SearchRequest.Builder()
-    //             .index(indexName)
-    //             .size(8000) // 한 페이지 당 가져올 문서 수
-    //             .query(q -> q.matchAll(m -> m)) // 전체 조회, 필요한 경우 다른 query로 대체
-    //             .sort(s -> s
-    //                 .field(f -> f
-    //                     .field("storeId.keyword") // keyword 필드로 정렬해야 함
-    //                     .order(SortOrder.Asc)
-    //                 )
-    //             );
-    //
-    //         // search_after 값 설정 (첫 요청은 null이므로 생략)
-    //         if (searchAfter != null) {
-    //             requestBuilder.searchAfter(searchAfter);
-    //         }
-    //         log.info("while true loop - searchAfter : {}", searchAfter);
-    //
-    //         // Elasticsearch 검색 요청 실행
-    //         try {
-    //             SearchResponse<StoreSearchDoc> response = elasticsearchClient.search(requestBuilder.build(), StoreSearchDoc.class);
-    //             List<Hit<StoreSearchDoc>> hits = response.hits().hits();
-    //
-    //             if (hits.isEmpty()) break; // 더 이상 데이터가 없으면 종료
-    //
-    //             // 결과 추가
-    //             hits.forEach(hit -> results.add(hit.source()));
-    //
-    //             // 마지막 문서의 sort 값 추출 및 search_after 설정
-    //             searchAfter = hits.get(hits.size() - 1).sort();
-    //             log.info("searchAfter set: {}", searchAfter);
-    //
-    //         } catch (Exception e) {
-    //             log.error("Error during Elasticsearch search: {}", e.getMessage());
-    //             throw new CustomException(ApiStatus._ES_READ_FAIL);
-    //         }
-    //     }
-    //     return results;
-    // }
-
     public List<StoreSearchDoc> findDocsByName(String indexName, Embedding queryVector, int k) {
         List<StoreSearchDoc> results = new ArrayList<>();
 
@@ -154,13 +113,18 @@ public class EsHelperService {
             // SearchRequest 생성
             SearchRequest request = new SearchRequest.Builder()
                 .index(indexName)
-                .timeout("360s")
-                .size(k) // top-k 문서만 가져오기
+                .size(k)
                 .query(q -> q
                     .scriptScore(ss -> ss
-                        .query(inner -> inner.matchAll(m -> m)) // 전체 문서에 대해 적용
+                        .query(inner -> inner
+                            .bool(b -> b
+                                .must(m -> m.matchAll(mq -> mq)) // 전체 문서 대상
+                                .mustNot(mn -> mn.wildcard(wc -> wc.field("storeNm.keyword").value("*점")))
+                                .mustNot(mn -> mn.wildcard(wc -> wc.field("storeNm.keyword").value("*번지")))
+                            )
+                        )
                         .script(script -> script
-                            .source("cosineSimilarity(params.queryVector, 'vector') + 1.0") // 유사도 계산
+                            .source("cosineSimilarity(params.queryVector, 'vector') + 1.0")
                             .params("queryVector", JsonData.of(vectorList))
                         )
                     )

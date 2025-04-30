@@ -32,8 +32,6 @@ public class TrendService {
                 .orElseThrow(() -> new CustomException(ApiStatus._ES_INDEX_LIST_FETCH_FAIL));
         indexNames.sort(Comparator.naturalOrder());
 
-        List<KeywordInfo> trendKeywords = getRecentKeywordInfos(trendKeyword, limit);
-
         Map<String, Map<String, Double>> indexToWordRelevanceMap = new HashMap<>();
 
         for (String indexName : indexNames) {
@@ -45,6 +43,8 @@ public class TrendService {
                         "인덱스 [" + indexName + "]의 WordFrequency 집계 실패");
             }
         }
+
+        List<KeywordInfo> trendKeywords = getRecentKeywordInfos(indexToWordRelevanceMap, limit);
 
         List<TotalTrendResponseDto> result = new ArrayList<>();
 
@@ -67,16 +67,18 @@ public class TrendService {
         return result;
     }
 
-    private List<KeywordInfo> getRecentKeywordInfos(String keyword, int limit) {
+    private List<KeywordInfo> getRecentKeywordInfos(Map<String, Map<String, Double>> indexToWordRelevanceMap, int limit) {
 
         String recentStoreSearchDocIndexName = docsName + "-" + esHelperService.getRecentCrtrYm();
-        Map<String, Double> wordRelevance = cosineSimilarity.getWordRelevance(keyword, recentStoreSearchDocIndexName);
+
+        Map<String, Double> wordRelevance = indexToWordRelevanceMap.get(recentStoreSearchDocIndexName);
 
         return wordRelevance.entrySet()
-                .stream()
-                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
-                .limit(limit)
-                .map(entry -> new KeywordInfo(entry.getKey(), entry.getValue()))
-                .toList();
+            .stream()
+            .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+            .filter(entry -> entry.getKey().length() > 1)
+            .limit(limit)
+            .map(entry -> new KeywordInfo(entry.getKey(), entry.getValue()))
+            .toList();
     }
 }
