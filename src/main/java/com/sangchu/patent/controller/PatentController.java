@@ -7,10 +7,10 @@ import com.sangchu.patent.service.PatentService;
 import com.sangchu.prefer.entity.PreferNameCreateDto;
 import com.sangchu.prefer.service.PreferService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.xml.sax.SAXException;
 
@@ -27,9 +27,9 @@ public class PatentController {
 
     @GetMapping("/patent")
     public ResponseEntity<BaseResponse<Boolean>> checkPatent(
-            @Param("keyword") String keyword,
-            @Param("custom") String custom,
-            @Param("storeNm") String storeNm
+            @RequestParam("keyword") String keyword,
+            @RequestParam("custom") String custom,
+            @RequestParam("storeNm") String storeNm
     ) throws URISyntaxException, IOException, ParserConfigurationException, SAXException {
         PreferNameCreateDto preferName = PreferNameCreateDto.builder().keyword(keyword).custom(custom).name(storeNm).build();
         preferService.createPreferName(preferName);
