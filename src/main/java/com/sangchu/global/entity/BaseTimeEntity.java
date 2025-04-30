@@ -1,4 +1,4 @@
-package com.sangchu.preprocess.etl.entity;
+package com.sangchu.global.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

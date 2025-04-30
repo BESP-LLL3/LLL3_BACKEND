@@ -2,6 +2,7 @@ package com.sangchu.preprocess.etl.entity;
 
 import java.math.BigDecimal;
 
+import com.sangchu.global.entity.BaseTimeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
