@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: infra/main_app/dockerfile_backend
+    container_name: SANGCHU
+    env_file:
+      - .env
+    ports:
+      - "8080:8081"
+    networks:
+      - LLL3_network
+    restart: always
+
+  frontend:
+    build:
+      context: ../../../LLL3_FRONTEND
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    networks:
+      - LLL3_network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: dockerfile_nginx
+    env_file:
+      - .env
+    environment:
+      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+    container_name: nginx_2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    networks:
+      - LLL3_network
+    restart: always
+
+  embedding:
+    build:
+      context: .
+      dockerfile: dockerfile_embedding
+    container_name: embedding
+    ports:
+      - "5000:5000"
+    networks:
+      - LLL3_network
+    restart: always
+
+networks:
+  LLL3_network:
+    driver: bridge
