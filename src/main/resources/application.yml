@@ -121,7 +121,7 @@ spring:
 
 embed:
   huggingface:
-    uri: ${LOCAL_HUGGINGFACE_URI}
+    uri: ${MAIN_HUGGINGFACE_URI}
 
     # cors 설정
 cors:
