@@ -29,14 +29,14 @@ public class TrendController {
     private final EmbeddingService embeddingService;
 
     @GetMapping("/trend")
-    public ResponseEntity<BaseResponse<List<TotalTrendResponseDto>>> getKeywordTrend(@RequestParam String keyword, @RequestParam int limit) {
+    public ResponseEntity<BaseResponse<List<TotalTrendResponseDto>>> getKeywordTrend(@RequestParam String keyword, @RequestParam int limit) throws IOException {
         return ResponseMapper.successOf(ApiStatus._OK, trendService.getTotalResults(keyword, limit), TrendController.class);
     }
 
-    @GetMapping("/knnSearch")
-    public ResponseEntity<BaseResponse<List<KeywordInfo>>> getKeyWordInfo(@RequestParam String keyword, @RequestParam int limit, @RequestParam String indexName) {
+    @GetMapping("/trendKeywords")
+    public ResponseEntity<BaseResponse<List<KeywordInfo>>> getKeyWordInfo(@RequestParam String keyword, @RequestParam int limit, @RequestParam int numCandidates, @RequestParam String indexName) {
         Embedding keywordEmbedding = embeddingService.getEmbedding(keyword);
 
-        return ResponseMapper.successOf(ApiStatus._OK, trendService.getKeywordInfos(limit, indexName, 500, keywordEmbedding), TrendController.class);
+        return ResponseMapper.successOf(ApiStatus._OK, trendService.getTrendKeywords(limit, indexName, numCandidates, keywordEmbedding), TrendController.class);
     }
 }

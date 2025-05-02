@@ -1,6 +1,7 @@
 package com.sangchu.elasticsearch.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch.cat.IndicesResponse;
 import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -101,11 +102,43 @@ public class EsHelperService {
                         .k(k)
                         .numCandidates(numCandidates)
                         .similarity(0.3F)
-                        .filter(q -> q.bool(b -> b
-                                .must(m -> m.matchAll(mq -> mq))
-                                .mustNot(mn -> mn.wildcard(wc -> wc.field("storeNm.keyword").value("점")))
-                                .mustNot(mn -> mn.wildcard(wc -> wc.field("storeNm.keyword").value("번지")))
-                        ))
+                )
+                .source(src -> src.filter(f -> f.includes("tokens")))
+        );
+
+        return elasticsearchClient.search(request, StoreSearchDoc.class);
+    }
+
+    public SearchResponse<StoreSearchDoc> searchKnnWithTokenFilter(
+            String indexName,
+            float[] queryVector,
+            int k,
+            int numCandidates,
+            List<String> tokenList
+    ) throws IOException {
+        List<Float> queryVectorList = new ArrayList<>();
+        for (float vector : queryVector) {
+            queryVectorList.add(vector);
+        }
+
+        List<FieldValue> fieldValues = tokenList.stream()
+                .map(FieldValue::of)
+                .toList();
+
+        SearchRequest request = SearchRequest.of(s -> s
+                .index(indexName)
+                .knn(knn -> knn
+                        .field("vector")
+                        .queryVector(queryVectorList)
+                        .k(k)
+                        .numCandidates(numCandidates)
+                        .similarity(0.3F)
+                        .filter(f -> f
+                                .terms(t -> t
+                                        .field("tokens")
+                                        .terms(terms -> terms.value(fieldValues))
+                                )
+                        )
                 )
                 .source(src -> src.filter(f -> f.includes("tokens")))
         );
