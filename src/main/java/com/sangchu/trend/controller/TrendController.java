@@ -14,10 +14,6 @@ import com.sangchu.trend.service.TrendService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(
-        origins = "http://localhost:3000",
-        allowCredentials = "true"
-) // React 포트
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
