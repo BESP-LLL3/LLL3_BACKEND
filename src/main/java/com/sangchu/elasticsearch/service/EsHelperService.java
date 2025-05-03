@@ -72,7 +72,7 @@ public class EsHelperService {
 
             recentIndexingDocRepository.save(doc);
         } catch (Exception e) {
-            throw new CustomException(ApiStatus._ES_CRTRYM_INDEXING_FAIL , "최근 분기 인덱싱 중 예외 발생 - crtrYm : " + crtrYm);
+            throw new CustomException(ApiStatus._ES_CRTRYM_INDEXING_FAIL , "최근 분기 => " + crtrYm);
         }
     }
 
