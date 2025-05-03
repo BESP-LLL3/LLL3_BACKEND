@@ -42,8 +42,8 @@ public enum ApiStatus {
 	_PATENT_CHECK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "중복 검사 중 예외 발생"),
 	_OPENAI_RESPONSE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "OpenAI 응답 없음"),
 	_BRANDING_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "상호명 추천 중 예외 발생"),
+	_ES_READ_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "elasticSearch 인덱스 읽어오는 도중 예외 발생"),
 	_PREFER_SAVE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, 500, "선호 이름 저장 중 오류가 발생했습니다.");
-
 
 	private final HttpStatus httpStatus;
 	private final int code;
