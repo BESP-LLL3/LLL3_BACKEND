@@ -47,7 +47,7 @@ public class CosineSimilarity {
 	public Map<String, Double> getWordRelevance(String keyword, String indexName) {
 		Embedding keywordEmbedding = embeddingService.getEmbedding(keyword);
 
-		List<StoreSearchDoc> allDocs = esHelperService.findDocsByName(indexName);
+		List<StoreSearchDoc> allDocs = esHelperService.findDocsByName(indexName, keywordEmbedding, 10000);
 		// 1. 유사도 필터링 (0.2 이상)
 		List<Double> similarites = new ArrayList<>();
 		List<StoreSearchDoc> similarDocs = allDocs.stream()
