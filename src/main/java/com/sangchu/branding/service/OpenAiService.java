@@ -2,6 +2,7 @@ package com.sangchu.branding.service;
 
 
 import com.sangchu.branding.entity.BrandNameRequestDto;
+import com.sangchu.branding.entity.BrandNameResponseDto;
 import com.sangchu.branding.entity.ChatRequestDto;
 import com.sangchu.branding.entity.ChatResponse;
 import com.sangchu.global.exception.custom.CustomException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -38,13 +40,14 @@ public class OpenAiService {
     private Double temperature;
 
     @Async
-    public CompletableFuture<List<String>> getBrandName(BrandNameRequestDto brandNameRequestDto) {
+    public CompletableFuture<List<BrandNameResponseDto>> getBrandName(BrandNameRequestDto brandNameRequestDto) {
         String userMessage = buildUserPrompt(brandNameRequestDto);
         String systemMessage = "당신은 창의적인 브랜드 상호명 전문가입니다. " +
-                "검색어와 관련된 이름을 추천하되, 반드시 포함할 필요는 없습니다. " +
-                "추가 키워드와 트렌드 키워드를 활용하세요. " +
-                "자연스럽고 매력적인 한글 상호명을" + brandNameRequestDto.getLimit() + "개 정도 제안해 주세요. " +
-                "번호나 설명 없이 상호명만 줄바꿈으로 구분해서 출력해 주세요.";
+            "검색어와 관련된 이름을 추천하되, 반드시 포함할 필요는 없습니다. " +
+            "추가 키워드와 트렌드 키워드를 활용하세요. " +
+            "자연스럽고 매력적인 한글 상호명을" + brandNameRequestDto.getLimit() + "개 정도 제안해 주세요. " +
+            "번호나 설명 없이 상호명과 그 상호명에 대한 간결하고 매력적인 소개문을 10자 이하로" +
+            "상호명-소개문의 형식을 줄바꿈으로 구분해서 출력해 주세요.";
 
         // 요청 메시지 작성
         ChatRequestDto request = ChatRequestDto.builder()
@@ -75,7 +78,19 @@ public class OpenAiService {
         // 응답 처리
         if (!response.getBody().getChoices().isEmpty()) {
             String chatResponse = response.getBody().getChoices().getFirst().getMessage().getContent();
-            return CompletableFuture.completedFuture(Arrays.asList(chatResponse.split("\n")));
+            List<String> responseList = Arrays.asList(chatResponse.split("\n"));
+            List<BrandNameResponseDto> responseDto = new ArrayList<>();
+            for (String responseItem : responseList) {
+                String[] responseItems = responseItem.split("-", 2); // 하이픈이 2개 이상 있어도 앞 2개만 분리
+                if (responseItems.length < 2) {
+                    continue; // 잘못된 포맷 무시
+                }
+                responseDto.add(BrandNameResponseDto.builder()
+                    .brandName(responseItems[0].trim())
+                    .comment(responseItems[1].trim())
+                    .build());
+            }
+            return CompletableFuture.completedFuture(responseDto);
         } else {
             throw new CustomException(ApiStatus._OPENAI_RESPONSE_FAIL);
         }
