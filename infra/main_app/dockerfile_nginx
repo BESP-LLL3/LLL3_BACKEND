@@ -1,0 +1,32 @@
+FROM nginx:latest
+
+# certbot 설치
+RUN apt-get update && apt-get install -y certbot cron
+
+# nginx.conf 파일을 복사하여 설정
+COPY nginx_config/default.conf /etc/nginx/conf.d/default.conf
+
+# certbot의 인증서 파일들이 저장될 디렉토리를 볼륨으로 설정
+VOLUME ["/etc/letsencrypt", "/var/www/certbot"]
+
+# 필요한 쉘 스크립트 복사
+COPY ./script/nginxSetting.sh /start-nginx.sh
+COPY ./nginx_config/config.conf /config.conf
+
+# 쉘 스크립트에 실행 권한 부여
+RUN chmod +x /start-nginx.sh
+
+# 크론 작업 추가 (80일마다 nginxSetting.sh 실행)
+RUN echo "0 0 */80 * * /start-nginx.sh >> /var/log/nginx/cron.log 2>&1" > /etc/cron.d/nginx-cron
+
+# 크론 작업 파일의 권한 설정
+RUN chmod 0644 /etc/cron.d/nginx-cron
+
+# cron 서비스 시작 시 로그 디렉토리 생성
+RUN mkdir -p /var/log/nginx
+
+# 쉘 스크립트에 실행 권한 부여
+RUN chmod +x /start-nginx.sh
+
+# nginx 및 cron 데몬을 함께 실행
+CMD /start-nginx.sh && cron && nginx -g 'daemon off;'
