@@ -1,8 +1,6 @@
 name: Deploy SANGCHU
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     types: [closed]
     branches: [ main ]
@@ -10,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    if: github.event_name == 'push' || github.event.pull_request.merged == true  || github.event_name == 'workflow_dispatch'
+    if: github.event.pull_request.merged == true  || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +33,7 @@ jobs:
               docker-compose build --no-cache backend
             
               echo "Starting Docker service backend..."
-              docker-compose up -d backend
+              docker-compose up -d --force-recreate backend
             
             else
               echo "Directory /home/ubuntu/LLL3_BACKEND/infra/main_app not found on server!"
