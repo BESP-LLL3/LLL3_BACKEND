@@ -73,15 +73,6 @@ embed:
   huggingface:
     uri: ${LOCAL_HUGGINGFACE_URI}
 
-# cors 설정
-# 프론트 nginx를 띄운다면
-cors:
-  allowed-origins: "*"
-  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
-  allowed-headers: "*"
-  allowed-Credentials: false
-  max-age: 3600
-
 # 디버깅 용도
 logging-level:
   org.hibernate.SQL: debug
@@ -126,15 +117,6 @@ spring:
 embed:
   huggingface:
     uri: ${MAIN_HUGGINGFACE_URI}
-
-    # cors 설정
-cors:
-  allowed-origins: "http://localhost:3000"
-  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
-  allowed-headers: "*"
-  allowed-credentials: false
-  max-age: 3600
-
 
 
 # info:
