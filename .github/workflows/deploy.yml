@@ -30,10 +30,10 @@ jobs:
               git reset --hard origin/main
             
               echo "Building Docker service backend..."
-              docker-compose build --no-cache --force-recreate backend
+              docker-compose build --no-cache backend
             
               echo "Starting Docker service backend..."
-              docker-compose up -d backend
+              docker-compose up -d --force-recreate backend
             
             else
               echo "Directory /home/ubuntu/LLL3_BACKEND/infra/main_app not found on server!"
