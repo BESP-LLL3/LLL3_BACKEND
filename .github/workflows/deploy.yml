@@ -1,0 +1,43 @@
+name: Deploy SANGCHU
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [closed]
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' || github.event.pull_request.merged == true  || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: SSH into server and deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            if [ -d "/home/ubuntu/LLL3_BACKEND/infra/main_app" ]; then
+              cd /home/ubuntu/LLL3_BACKEND/infra/main_app
+              echo "Fetch and reset latest code from main branch..."
+            
+              git fetch origin main
+              git reset --hard origin/main
+            
+              echo "Building Docker service backend..."
+              docker-compose build --no-cache backend
+            
+              echo "Starting Docker service backend..."
+              docker-compose up -d backend
+            
+            else
+              echo "Directory /home/ubuntu/LLL3_BACKEND/infra/main_app not found on server!"
+              exit 1
+            fi

@@ -18,12 +18,11 @@ WORKDIR /app
 
 # 빌드 스테이지에서 생성된 jar 파일 복사
 COPY --from=builder /build/build/libs/*.jar app.jar
-COPY infra/docker/script/backendSetting.sh /app/wait-for-elasticsearch.sh
 
 RUN chmod 777 /app/app.jar
 ARG PROFILE
 ENV PROFILE=${PROFILE}
 
-EXPOSE 8080
+EXPOSE 8081
 
-ENTRYPOINT ["/bin/bash", "/app/wait-for-elasticsearch.sh"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

@@ -56,6 +56,8 @@ spring:
 
   elasticsearch:
     uris: http://${LOCAL_HOST}:${ES_EXTERNAL_PORT_1}/
+    connection-timeout: 1200s
+    socket-timeout: 1200s
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -101,6 +103,7 @@ spring:
     uris: http://${MAIN_HOST}:${ES_EXTERNAL_PORT_1}/
     connection-timeout: 1200s
     socket-timeout: 1200s
+
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
@@ -113,7 +116,7 @@ spring:
 
 embed:
   huggingface:
-    uri: ${LOCAL_HUGGINGFACE_URI}
+    uri: ${MAIN_HUGGINGFACE_URI}
 
 
 # info:
