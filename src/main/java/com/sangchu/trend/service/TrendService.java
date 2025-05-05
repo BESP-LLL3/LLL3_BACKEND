@@ -35,14 +35,18 @@ public class TrendService {
     private final EmbeddingService embeddingService;
     private final EsHelperService esHelperService;
 
+    private final int k = 40;
+    private final int numCandidates = 80;
+
     public List<TotalTrendResponseDto> getTotalResults(String trendKeyword, int limit) {
         List<String> indexNames = esHelperService.getStoreSearchDocIndices()
                 .orElseThrow(() -> new CustomException(ApiStatus._ES_INDEX_LIST_FETCH_FAIL));
         indexNames.sort(Comparator.naturalOrder());
+
         String recentStoreSearchDocIndexName = docsName + "-" + esHelperService.getRecentCrtrYm();
         Embedding keywordEmbedding = embeddingService.getEmbedding(trendKeyword);
 
-        List<KeywordInfo> trendKeywords = getTrendKeywords(30, recentStoreSearchDocIndexName, 120, keywordEmbedding).stream()
+        List<KeywordInfo> trendKeywords = getTrendKeywords(k, recentStoreSearchDocIndexName, numCandidates, keywordEmbedding).stream()
                 .filter(k -> k.getKeyword().length() > 1) // 글자 수 1인 키워드 제거
                 .sorted((a, b) -> Double.compare(b.getRelevance(), a.getRelevance())) // 내림차순 정렬
                 .toList();
@@ -56,12 +60,22 @@ public class TrendService {
                     // 전체 분기별 점수 맵
                     Map<String, Double> quarterRelevance = analyzeTrends.getOrDefault(keyword, Collections.emptyMap());
 
-                    // 최근 분기의 relevance 점수
-                    Double recentScore = quarterRelevance.get(esHelperService.getRecentCrtrYm());
+                    Map<String, Double> sortedQuarterRelevance = quarterRelevance.entrySet().stream()
+                            .sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+                            .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue,
+                                    (a, b) -> b,
+                                    LinkedHashMap::new
+                            ));
 
-                    return new TotalTrendResponseDto(keyword, recentScore, quarterRelevance);
+                    // 최근 분기의 relevance 점수
+                    Double recentScore = keywordInfo.getRelevance();
+
+                    return new TotalTrendResponseDto(keyword, recentScore, sortedQuarterRelevance);
                 })
                 .sorted(Comparator.comparingDouble(TotalTrendResponseDto::getRecentCrtrYmRelevance).reversed())
+                .limit(limit)
                 .toList();
 
         return results;
@@ -87,8 +101,10 @@ public class TrendService {
                 }
 
                 for (String token : tokens) {
-                    scoreSum.put(token, scoreSum.getOrDefault(token, 0d) + score);
-                    frequency.put(token, frequency.getOrDefault(token, 0) + 1);
+                    if (tokens.contains(token)) {
+                        scoreSum.put(token, scoreSum.getOrDefault(token, 0d) + score);
+                        frequency.put(token, frequency.getOrDefault(token, 0) + 1);
+                    }
                 }
             }
 
@@ -118,54 +134,52 @@ public class TrendService {
             float[] keywordVector,
             List<String> indexList
     ) {
-        // ConcurrentMap으로 병렬 환경에서 안전하게 결과 수집
-        Map<String, Map<String, Double>> trendKeywordScores = trendKeywords.parallelStream()
-                .collect(Collectors.toConcurrentMap(
-                        KeywordInfo::getKeyword, // 키: 키워드 문자열
-                        keywordInfo -> {
-                            Map<String, Double> scoreMap = new HashMap<>();
-                            for (String indexName : indexList) {
-                                try {
-                                    SearchResponse<StoreSearchDoc> response =
-                                            esHelperService.searchKnnWithTokenFilter(
-                                                    indexName,
-                                                    keywordVector,
-                                                    30,      // k
-                                                    120,      // num_candidates (속도 개선 가능)
-                                                    List.of(keywordInfo.getKeyword())
-                                            );
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        Map<String, Map<String, Double>> finalResult = new ConcurrentHashMap<>();
 
-                                    // 각 문서의 score 합산
-                                    for (Hit<StoreSearchDoc> hit : response.hits().hits()) {
-                                        Double hitScore = hit.score();
-                                        if (hitScore != null && hitScore > 0.0) {
-                                            StoreSearchDoc source = hit.source();
-                                            List<String> tokens = source.getTokens();
+        List<CompletableFuture<Void>> futures = indexList.stream()
+                .map(indexName -> CompletableFuture.runAsync(() -> {
+                    try {
+                        SearchResponse<StoreSearchDoc> response = esHelperService.searchKnn(
+                                indexName,
+                                keywordVector,
+                                k,
+                                numCandidates
+                        );
 
-                                            if (tokens != null) {
-                                                // 각 토큰마다 점수를 누적
-                                                for (String token : tokens) {
-                                                    // 만약 현재 토큰이 우리가 찾고 있는 키워드라면 점수 추가
-                                                    if (token.equals(keywordInfo.getKeyword())) {
-                                                        scoreMap.put(indexName,
-                                                                scoreMap.getOrDefault(indexName, 0.0) + hitScore);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                        List<Hit<StoreSearchDoc>> hits = response.hits().hits();
 
-                                } catch (IOException e) {
-                                    log.warn("KNN 검색 실패: keyword={}, indexName={}, error={}",
-                                            keywordInfo.getKeyword(), indexName, e.getMessage());
-                                    // 실패한 인덱스에 대해서는 0점 처리
-                                    scoreMap.put(indexName, 0.0);
-                                }
-                            }
-                            return scoreMap;
+                        for (KeywordInfo keywordInfo : trendKeywords) {
+                            double totalScore = hits.stream()
+                                    .filter(hit -> hit.score() != null && hit.score() > 0.0)
+                                    .filter(hit -> {
+                                        StoreSearchDoc source = hit.source();
+                                        List<String> tokens = source.getTokens();
+                                        return tokens != null && tokens.contains(keywordInfo.getKeyword());
+                                    })
+                                    .mapToDouble(Hit::score)
+                                    .sum();
+
+                            finalResult
+                                    .computeIfAbsent(keywordInfo.getKeyword(), k -> new ConcurrentHashMap<>())
+                                    .put(indexName, totalScore);
                         }
-                ));
 
-        return trendKeywordScores;
+                    } catch (IOException e) {
+                        log.warn("KNN 검색 실패: indexName={}, error={}", indexName, e.getMessage());
+                        for (KeywordInfo keywordInfo : trendKeywords) {
+                            finalResult
+                                    .computeIfAbsent(keywordInfo.getKeyword(), k -> new ConcurrentHashMap<>())
+                                    .put(indexName, 0.0);
+                        }
+                    }
+                }, executor))
+                .toList();
+
+        // 모든 병렬 작업 완료 대기
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        executor.shutdown();
+
+        return finalResult;
     }
 }
