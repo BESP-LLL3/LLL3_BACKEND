@@ -12,11 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.net.URISyntaxException;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +25,7 @@ public class PatentController {
             @RequestParam("keyword") String keyword,
             @RequestParam("custom") String custom,
             @RequestParam("storeNm") String storeNm
-    ) throws URISyntaxException, IOException, ParserConfigurationException, SAXException {
+    ) {
         PreferNameCreateDto preferName = PreferNameCreateDto.builder().keyword(keyword).custom(custom).name(storeNm).build();
         preferService.createPreferName(preferName);
         Boolean response = patentService.checkDuplicated(storeNm);
