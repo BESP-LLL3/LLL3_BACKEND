@@ -1,19 +1,11 @@
 package com.sangchu.preprocess.etl.service;
 
+import com.microsoft.playwright.*;
 import com.sangchu.global.exception.custom.CustomException;
 import com.sangchu.global.util.UtilFile;
 import com.sangchu.global.util.statuscode.ApiStatus;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,11 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipFile;
 
 @Slf4j
@@ -45,41 +35,39 @@ public class CrawlerService {
     * 다운받은 압축 파일을 resources/data에 저장
     */
     private void crwaling() {
-        WebDriverManager.chromedriver().setup();
-
         Path resourcePath = Paths.get("src/main/resources/data").toAbsolutePath();
-        log.info("resourcePath = " + resourcePath);
+        log.info("resourcePath = {}", resourcePath);
 
         UtilFile.resetDirectory(resourcePath);
 
-        Map<String, Object> chromePrefs = new HashMap<>();
-        chromePrefs.put("download.default_directory", resourcePath.toString());
-        chromePrefs.put("download.prompt_for_download", false);
-        chromePrefs.put("safebrowsing.enabled", true);
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                    .setHeadless(true));
 
-        ChromeOptions options = new ChromeOptions();
-        options.setExperimentalOption("prefs", chromePrefs);
+            BrowserContext context = browser.newContext(new Browser.NewContextOptions()
+                    .setAcceptDownloads(true));
 
-        WebDriver driver = new ChromeDriver(options);
+            Page page = context.newPage();
+            page.navigate("https://www.data.go.kr/data/15083033/fileData.do#/layer_data_infomation");
+            page.onDialog(Dialog::accept);
 
-        try {
-            driver.get("https://www.data.go.kr/data/15083033/fileData.do#/layer_data_infomation");
+            Download download = page.waitForDownload(() -> {
+                try {
+                    page.click("xpath=//a[contains(@onclick, \"fn_fileDataDown('15083033'\")]");
+                } catch (PlaywrightException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
-            WebElement downloadBtn = driver.findElement(By.xpath("//a[contains(@onclick, \"fn_fileDataDown('15083033'\")]"));
-            downloadBtn.click();
-            Thread.sleep(3000);
+            Path tmpDownloadedFile = download.path();
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            Alert alert = wait.until(ExpectedConditions.alertIsPresent());
-            alert.accept();
+            Path targetFile = resourcePath.resolve(download.suggestedFilename());
+            Files.copy(tmpDownloadedFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
 
-            waitForDownloadToComplete(30);
-
+            browser.close();
         } catch (Exception e) {
             log.error("크롤링 실패", e);
             throw new CustomException(ApiStatus._FILE_DOWNLOAD_FAIL);
-        } finally {
-            driver.quit();
         }
     }
 
@@ -111,6 +99,7 @@ public class CrawlerService {
         Path downloadDir = resourcePath.resolve("data");
 
         List<Charset> charsets = Arrays.asList(
+            Charset.forName("EUC-KR"),
             Charset.forName("MS949"),
             Charset.forName("CP949"),
             StandardCharsets.UTF_8,
@@ -119,7 +108,7 @@ public class CrawlerService {
 
         try {
             Files.walk(downloadDir)
-                .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(".zip"))
+                .filter(path -> Files.isRegularFile(path) && isZipFile(path) && !path.toString().endsWith(".txt"))
                 .forEach(zipFilePath -> {
                     try {
                         // 압축 파일 내 CSV 파일명 캐릭터셋 검사
@@ -134,7 +123,11 @@ public class CrawlerService {
                         ZipFile zipFile = new ZipFile(zipFilePath.toFile(), extractedCharset);
 
                         zipFile.entries().asIterator().forEachRemaining(zipEntry -> {
-                            Path outputPath = downloadDir.resolve(zipEntry.getName());
+                            String entryName = zipEntry.getName();
+
+                            if (entryName.endsWith(".txt")) return;
+
+                            Path outputPath = downloadDir.resolve(entryName);
 
                             try {
                                 if (zipEntry.isDirectory()) {
@@ -165,5 +158,17 @@ public class CrawlerService {
             log.error("파일 목록 가져오기 실패", e);
             throw new CustomException(ApiStatus._FILE_UNZIP_FAILED);
         }
+    }
+
+    private boolean isZipFile(Path path) {
+        try (InputStream is = Files.newInputStream(path)) {
+            byte[] signature = new byte[4];
+            if (is.read(signature) == 4) {
+                return signature[0] == 'P' && signature[1] == 'K' && signature[2] == 3 && signature[3] == 4;
+            }
+        } catch (IOException e) {
+            log.warn("ZIP 파일 여부 확인 실패: {}", path.getFileName(), e);
+        }
+        return false;
     }
 }
