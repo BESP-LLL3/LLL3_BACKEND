@@ -55,7 +55,7 @@ public class CrawlerService {
                 try {
                     page.click("xpath=//a[contains(@onclick, \"fn_fileDataDown('15083033'\")]");
                 } catch (PlaywrightException e) {
-                    throw new RuntimeException(e);
+                    throw new CustomException(ApiStatus._INTERNAL_SERVER_ERROR);
                 }
             });
 
