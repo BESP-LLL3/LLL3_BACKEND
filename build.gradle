@@ -38,7 +38,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 	implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
 	implementation 'org.seleniumhq.selenium:selenium-java:4.20.0'
-	implementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
+	implementation 'com.microsoft.playwright:playwright:1.37.0'
 	implementation 'org.seleniumhq.selenium:selenium-devtools-v135:4.31.0'
 	implementation 'com.opencsv:opencsv:5.9'
 

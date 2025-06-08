@@ -1,5 +1,6 @@
 package com.sangchu.preprocess.etl.controller;
 
+import com.sangchu.preprocess.scheduler.PreProcessScheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -20,6 +21,7 @@ public class MysqlBatchController {
 
     private final JobLauncher jobLauncher;
     private final Job mysqlJob;
+    private final PreProcessScheduler preProcessScheduler;
 
     @PostMapping("/import/mysql")
     public String runImportMysqlJob() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
@@ -30,5 +32,10 @@ public class MysqlBatchController {
         jobLauncher.run(mysqlJob, jobParameters);
 
         return "csv -> mysql 작업";
+    }
+
+    @PostMapping("/scheduler")
+    public void runScheduler() throws Exception {
+        preProcessScheduler.scheduler();
     }
 }
